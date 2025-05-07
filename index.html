@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Spin Wheel Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/index_style.css">
+</head>
+<body>
+    <div class="spinWheel-box", id="spinWheel">
+        <span class="close-btn" onclick="closeForm('spinWheel')">&times;</span>
+        <label class="wheel-name" title="Per spin, you add a new rule">Rules Spin Wheel</label>
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div id="wheel" class="wheel">
+                <label id="percentage-label" title="Rules can stack over time, thus changing the chance of that rule being applied"></label>
+                <div class="segment" style="--i:0; --clr:#FFD700;" title="Chance at the start of each turn to randomly select a different player to go first"><span>Wildcard Trickster</span></div>
+                <div class="segment" style="--i:1; --clr:#696969;" title="Chance when collecting resources to receive nothing instead"><span>Apocalyptic Survivor</span></div>
+                <div class="segment" style="--i:2; --clr:#8A2BE2;" title="Chance for any action to have a completely random outcome"><span>Mad Scientist</span></div>
+                <div class="segment" style="--i:3; --clr:#3498db;" title="Chance to hide resource information from all players for one round"><span>Blind Play</span></div>
+                <div class="segment" style="--i:4; --clr:#DAA520;" title="Start with fewer resources but gain 10% bonus on all future acquisitions"><span>Rags to Riches</span></div>
+                <div class="segment" style="--i:5; --clr:#8E2818;" title="Start with double resources but lose 5% of total after each turn"><span>Riches to Rags</span></div>
+                <div class="segment" style="--i:6; --clr:#328CAA;" title="Chance of negative events, but they only have half effect"><span>Cursed Wanderer</span></div>
+                <div class="segment" style="--i:7; --clr:#8A5887;" title="Chance to double any resource gained, but 5% chance to lose a random resource"><span>Golden Touch</span></div>
+            </div>
+        </div>
+        <div id="winnerValue" class="winner-value"><span>0</span></div>
+        <button class="spin" id="spinBtn">SPIN</button>
+    </div>
+
+    <div class="side-panel">
+        <div class="content">
+        </div>
+    </div>
+    
+    <div class="searchbar">
+        <input id="searchbar" onkeyup="search_elements()" type="text" name="search" placeholder="Search...">
+        <button class="fa fa-user" title="player invintory" onclick="showForm('player-inventory')"></button>
+        <button class="fa fa-store" title="store" onclick="showForm('store')"></button>
+        <button class="fa fa-map" title="map" onclick="showForm('map')"></button>
+        <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
+    </div>
+
+    <div class="popup-form" id="player-inventory">
+        <div class="form-container">
+            <span class="close-btn" onclick="closeForm('player-inventory')">&times;</span>
+            <h2><i class="fa fa-user"></i> Player Inventory</h2>
+            
+            <div class="stats-bar">
+                <span><i class="fas fa-heart"></i> HP: 35/40</span>
+                <span><i class="fas fa-shield-alt"></i> Armor: 15</span>
+                <span><i class="fas fa-gavel"></i> Attack: 15</span>
+                <span><i class="fas fa-running"></i> Speed: 30ft</span>
+            </div>
+    
+            <div class="inventory-grid">
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/index_script.js"></script>
+</body>
+</html>
