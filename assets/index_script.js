@@ -30,6 +30,115 @@ const values_def = [
     "Chance to double any resource gained, but 5% chance to lose a random resource"
 ]
 
+const itemsDatabase = [
+    { 
+        icon: "fa-gavel", 
+        name: "Warhammer", 
+        dice: "1d8",
+        description: "A heavy, two-handed hammer used for crushing opponents",
+        type: "weapon",
+        percentage: 0
+    },
+    { 
+        icon: "fa-key", 
+        name: "Skeleton Key",
+        description: "Opens any non-magical lock with ease",
+        type: "tool",
+        percentage: 0
+    },
+    { 
+        icon: "fa-hammer", 
+        name: "War Maul", 
+        dice: "1d12",
+        description: "Massive hammer capable of dealing devastating blows",
+        type: "weapon",
+        percentage: 0
+    },
+    { 
+        icon: "fa-medkit", 
+        name: "Medkit", 
+        dice: "1d6",
+        description: "Restores 1d6 health points when used",
+        type: "consumable",
+        percentage: 0
+    },
+    { 
+        icon: "fa-flask", 
+        name: "Potion of Healing", 
+        dice: "1d6",
+        description: "Magical liquid that restores 1d6 health when drunk",
+        type: "consumable",
+        percentage: 0 
+    },
+    { 
+        icon: "fa-ring", 
+        name: "Ring of Power",
+        description: "Ancient ring that enhances the wearer's magical abilities",
+        type: "accessory",
+        percentage: 0
+    },
+    { 
+        icon: "fa-shoe-prints", 
+        name: "Boots of Speed",
+        description: "Increases movement speed by 10 feet",
+        type: "armor",
+        percentage: 0
+    },
+    { 
+        icon: "fa-book", 
+        name: "Spell Book", 
+        dice: "1d100",
+        description: "Contains powerful spells and arcane knowledge",
+        type: "magic",
+        percentage: 0
+    },
+    { 
+        icon: "fa-map", 
+        name: "Ancient Map",
+        description: "Shows the location of a hidden treasure",
+        type: "tool",
+        percentage: 0
+    },
+    { 
+        icon: "fa-suitcase", 
+        name: "Adventurer's Pack",
+        description: "Contains basic survival equipment for adventuring",
+        type: "tool",
+        percentage: 0
+    },
+    { 
+        icon: "fa-shield-alt", 
+        name: "Shield", 
+        dice: "1d10",
+        description: "Provides additional defense against attacks",
+        type: "armor",
+        percentage: 0
+    },
+    { 
+        icon: "fa-bomb", 
+        name: "Grenade", 
+        dice: "1d20",
+        description: "Explodes on impact, dealing 1d20 damage in a 10ft radius",
+        type: "consumable",
+        percentage: 0 
+    },
+    { 
+        icon: "fa-feather", 
+        name: "Phoenix Feather",
+        description: "Can resurrect a fallen ally once",
+        type: "consumable",
+        percentage: 0 
+    },
+    { 
+        icon: "fa-skull", 
+        name: "Cursed Totem", 
+        dice: "1d4",
+        description: "Deals 1d4 damage to enemies but also harms the wielder",
+        type: "magic",
+        percentage: 0 
+    }
+];
+
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
     document.getElementById(formId).style.display = 'block';
@@ -70,17 +179,6 @@ function addRule(ruleName, description) {
         ruleTracker[ruleName].button.innerText = `${newPercent.toFixed(2)}% chance - ${ruleName}`;
         ruleTracker[ruleName].button.title = description;
     }
-}
-
-function addRoll(type, number) {
-    let button = document.createElement("button");
-    button.classList.add("track");
-    button.innerText = type + ": " + number;
-    document.querySelector(".content").appendChild(button);
-    var uniqid = Date.now();
-    rollTracker[uniqid] = {
-        button: button
-    };
 }
 
 function clearHistory() {
@@ -145,31 +243,55 @@ function search_elements() {
     });
 }
 
-function rollDice(dice_type, amount) {
-    var endvalue = 0;
-    if (amount != null) {
-        for (i = 0; i < amount; i++) {
-            if (dice_type == "1d4") {
-                endvalue = 4;
-            } else if (dice_type == "1d6") {
-                endvalue = 6;
-            } else if (dice_type == "1d8") {
-                endvalue = 8;
-            } else if (dice_type == "1d10") {
-                endvalue = 10;
-            } else if (dice_type == "1d12") {
-                endvalue = 12;
-            } else if (dice_type == "1d20") {
-                endvalue = 20;
-            } else if (dice_type == "1d100") {
-                endvalue = 100;
-            } else {
-                return null;
-            }
-        }
+function rollDice(dice_type, amount, increase) {
+    let totalValue = 0;
+    let endvalue = 0;
+    const increase_2 = Number(increase);
+    if (!amount) return;
+    
+    switch (dice_type) {
+        case "1d4": endvalue = 4; break;
+        case "1d6": endvalue = 6; break;
+        case "1d8": endvalue = 8; break;
+        case "1d10": endvalue = 10; break;
+        case "1d12": endvalue = 12; break;
+        case "1d20": endvalue = 20; break;
+        case "1d100": endvalue = 100; break;
+        default: return null;
     }
-    let rollValue = Math.floor(1 + Math.random() * endvalue);
-    addRoll(dice_type, rollValue);
+    
+    // Perform the roll(s)
+    for (let i = 0; i < amount; i++) {
+        const rawRoll = Math.floor(1 + Math.random() * endvalue);
+        const rollValue = increase_2 ? rawRoll + increase_2 : rawRoll;
+        totalValue += rollValue;
+        addRoll(dice_type, totalValue, increase_2, rawRoll);
+    }
+    
+    // Add the total for multiple dice
+    if (amount > 1) {
+        const totalButton = document.createElement("button");
+        totalButton.classList.add("track", "total");
+        totalButton.innerText = `Total: ${totalValue}`;
+        document.querySelector(".content").appendChild(totalButton);
+        const uniqid = Date.now();
+        rollTracker[uniqid] = { button: totalButton };
+    }
+    
+    return totalValue;
+}
+
+function addRoll(type, total, increase, rawRoll) {
+    const button = document.createElement("button");
+    button.classList.add("track");
+    let displayText = `Rolled ${type} → ${rawRoll}`;
+    if (increase) {
+        displayText += ` + ${increase} = ${total}`;
+    }
+    button.innerText = displayText;
+    document.querySelector(".content").appendChild(button);
+    const uniqid = Date.now();
+    rollTracker[uniqid] = { button: button };
 }
 
 function percentage() {
@@ -178,52 +300,217 @@ function percentage() {
 }
 
 function generateItem(amount) {
-    for (i=onabort; i<amount; i++) {
-        const inventory = document.querySelector(".inventory-grid");
+    const inventory = document.querySelector(".inventory-grid");
+    inventory.innerHTML = ''; // Clear existing items
 
-        const items = [
-            { icon: "fa-gavel", name: "Warhammer", dice: "1d8" },
-            { icon: "fa-key", name: "Skeleton Key" },
-            { icon: "fa-legal", name: "Hammer", dice: "1d12" },
-            { icon: "fa-medkit", name: "Medkit", dice: "1d6" },
-            { icon: "fa-flask", name: "Potion", dice: "1d6" },
-            { icon: "fa-ring", name: "Ring of Power" },
-            { icon: "fa-shoe-prints", name: "Boots of Speed" },
-            { icon: "fa-book", name: "Spell Book", dice: "1d100" },
-            { icon: "fa-map", name: "Ancient Map" },
-            { icon: "fa-suitcase", name: "Adventurer’s Pack" },
-            { icon: "fa-shield-alt", name: "Shield", dice: "1d10" },
-            { icon: "fa-bomb", name: "Grenade", dice: "1d20" },
-            { icon: "fa-feather", name: "Phoenix Feather" },
-            { icon: "fa-skull", name: "Cursed Totem", dice: "1d4" }
-        ];
-
-        const randomItem = items[Math.floor(Math.random() * items.length)];
-
+    for (let i = 0; i < amount; i++) {
+        // Get a random item from our database
+        const randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
+        const randomPercentage = Math.random() * (100 - 1) + 1;
+        // Create item slot
         const itemSlot = document.createElement("div");
         itemSlot.className = "item-slot";
-        itemSlot.title = randomItem.name;
-
+        itemSlot.dataset.itemId = i;
+        itemSlot.dataset.itemName = randomItem.name;
+        itemSlot.dataset.itemType = randomItem.type;
+        itemSlot.dataset.percentage = randomPercentage.toFixed(0);
+        itemSlot.title = randomItem.description;
+        // Create icon
         const icon = document.createElement("i");
         icon.className = "fas " + randomItem.icon;
 
+        // Append icon to slot
+        itemSlot.appendChild(icon);
+
+        // Add dice label if applicable
         if (randomItem.dice) {
-            itemSlot.onclick = () => rollDice(randomItem.dice, 1);
+            itemSlot.dataset.itemDice = randomItem.dice;
             const label = document.createElement("label");
+            const percentageLabel = document.createElement("p")
             label.innerText = randomItem.dice;
-            itemSlot.appendChild(icon);
+            percentageLabel.innerText = "+" + randomPercentage.toFixed(0);
+            itemSlot.appendChild(percentageLabel);
             itemSlot.appendChild(label);
-        } else {
-            itemSlot.appendChild(icon);
         }
+        // Store item description
+        itemSlot.dataset.itemDesc = randomItem.description;
+
+        // Correct mouse handling
+        itemSlot.addEventListener("mousedown", function(event) {
+            event.preventDefault(); // Optional: prevent default behaviors like context menu
+
+            switch (event.button) {
+                case 0: // Left click
+                    toggleEquip(this);
+                    break;
+                case 1: // Middle click
+                    console.log("Middle click");
+                    break;
+                case 2: // Right click
+                    if (this.classList.contains('equipped')) {
+                        rollDice(this.dataset.itemDice, 1, this.dataset.percentage);
+                    }
+                    break;
+            }
+        });
+
+        // Prevent right-click menu
+        itemSlot.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+        });
 
         inventory.appendChild(itemSlot);
     }
 }
 
+function toggleEquip(itemElement) {
+    // Visual feedback
+    itemElement.classList.add('pulse');
+    setTimeout(() => {
+        itemElement.classList.remove('pulse');
+    }, 300);
+    
+    if (itemElement.classList.contains('equipped')) {
+        // Item is equipped, so unequip it
+        unequipItem(itemElement);
+    } else {
+        // Item is not equipped, so equip it
+        equipItem(itemElement);
+    }
+}
+
+// Equip an item (move to equipped area)
+function equipItem(itemElement) {
+    // Find first empty equip slot
+    const equippedSlots = document.querySelectorAll('.equip-slot.empty-slot');
+    if (equippedSlots.length === 0) {
+        // No empty slots available
+        alert("You have no empty equipment slots!");
+        return;
+    }
+    
+    const firstEmptySlot = equippedSlots[0];
+    
+    // Clone the item
+    const clonedItem = itemElement.cloneNode(true);
+    
+    // Update classes and data attributes
+    clonedItem.classList.add('equipped');
+    clonedItem.dataset.originalId = itemElement.dataset.itemId;
+    
+    // Add click handler to unequip
+    clonedItem.addEventListener("mousedown", function(event) {
+        event.preventDefault(); // Optional: prevent default behaviors like context menu
+
+        switch (event.button) {
+            case 0: // Left click
+                toggleEquip(this);
+                break;
+            case 1: // Middle click
+                console.log("Middle click");
+                break;
+            case 2: // Right click
+                if (this.classList.contains('equipped')) {
+                    const randomPercentage = Math.random() * (this.dataset.percentage - 0) + 0;
+                    rollDice(this.dataset.itemDice, 1, randomPercentage.toFixed(0));
+                }
+                break;
+        }
+    });
+    
+    // Remove placeholder icon from slot
+    firstEmptySlot.innerHTML = '';
+    
+    // Add item to equip slot
+    firstEmptySlot.appendChild(clonedItem);
+    firstEmptySlot.classList.remove('empty-slot');
+    
+    // Mark original inventory item as equipped
+    itemElement.classList.add('equipped');
+    
+    // Optional: Update character stats based on equipped item
+    updateCharacterStats();
+}
+
+// Unequip an item (return to inventory)
+function unequipItem(equippedItem) {
+    // Handle unequipping from equipment slot
+    if (equippedItem.parentElement.classList.contains('equip-slot')) {
+        // Mark parent slot as empty
+        const parentSlot = equippedItem.parentElement;
+        parentSlot.classList.add('empty-slot');
+        
+        // Add placeholder icon back
+        parentSlot.innerHTML = '';
+        const placeholder = document.createElement("i");
+        placeholder.className = "fas fa-plus";
+        placeholder.style.opacity = "0.3";
+        parentSlot.appendChild(placeholder);
+        
+        // Find original inventory item and update its status
+        const originalId = equippedItem.dataset.originalId;
+        if (originalId) {
+            const originalItem = document.querySelector(`.inventory-grid .item-slot[data-item-id="${originalId}"]`);
+            if (originalItem) {
+                originalItem.classList.remove('equipped');
+            }
+        }
+    } 
+    // Handle direct click on inventory item
+    else {
+        // Find corresponding equipped item
+        const itemId = equippedItem.dataset.itemId;
+        const equippedVersion = document.querySelector(`.equip-slot .item-slot[data-original-id="${itemId}"]`);
+        
+        if (equippedVersion) {
+            // Trigger unequip on the equipped version
+            toggleEquip(equippedVersion);
+        }
+        
+        // Update inventory item status
+        equippedItem.classList.remove('equipped');
+    }
+    
+    // Update character stats
+    updateCharacterStats();
+}
+
+// Update character stats based on equipped items
+function updateCharacterStats() {
+    // This is where you would calculate and update character stats
+    // based on equipped items
+    
+    // For this demo, we'll just simulate it with a visual feedback
+    const statsBar = document.querySelector('.stats-bar');
+    statsBar.style.backgroundColor = 'rgba(117, 121, 231, 0.2)';
+    setTimeout(() => {
+        statsBar.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+    }, 300);
+}
+
+function equippedInventoryGenerate(amount) {
+    const equipInventory = document.getElementById("equippedSlot");
+    equipInventory.innerHTML = '';
+    for (let i = 0; i < amount; i++) {
+        const equipSlot = document.createElement("div");
+        equipSlot.className = "equip-slot empty-slot";
+        equipSlot.dataset.slotIndex = i;
+        // Add a subtle placeholder icon
+        const placeholder = document.createElement("i");
+        placeholder.className = "fas fa-plus";
+        placeholder.style.opacity = "0.3";
+        equipSlot.appendChild(placeholder);
+        equipInventory.appendChild(equipSlot);
+    }
+}
+
 spinBtn.addEventListener('click', rotateWheel);
-addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
-addRule('Rule 2', 'No rules can be removed or changed during play.');
-addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
-percentage();
-generateItem(10);
+
+document.addEventListener('DOMContentLoaded', function () {
+    addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
+    addRule('Rule 2', 'No rules can be removed or changed during play.');
+    addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
+    percentage();
+    generateItem(10);
+    equippedInventoryGenerate(6);
+});

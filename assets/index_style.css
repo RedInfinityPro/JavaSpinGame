@@ -320,12 +320,13 @@ body {
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(4, 60px);
+    grid-template-columns: repeat(6, 60px);
     grid-gap: 10px;
     justify-content: center;
 }
 
 .item-slot {
+    position: relative;
     width: 60px;
     height: 60px;
     background: rgba(255, 255, 255, 0.1);
@@ -336,20 +337,67 @@ body {
     align-items: center;
     color: white;
     font-size: 1.5rem;
-    transition: transform 0.2s;
+    transition: all 0.2s;
     cursor: pointer;
+    overflow: hidden;
 }
 
 .item-slot label {
-    position: relative;
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
     font-size: 10px;
-    top: 30%;
-    left: 7%;
     color: lightgray;
-    cursor: pointer;
+    pointer-events: none;
+}
+
+.item-slot p {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    font-size: 10px;
+    color: lightgray;
+    pointer-events: none;
 }
 
 .item-slot:hover {
     background-color: rgba(255, 255, 255, 0.2);
     transform: scale(1.1);
+}
+
+.item-slot.equipped {
+    background: rgba(117, 121, 231, 0.15);
+    border-color: #7579e7;
+}
+
+.equip-inventory {
+    display: grid;
+    grid-template-columns: repeat(6, 60px);
+    grid-gap: 10px;
+    justify-content: center;
+}
+
+.equip-slot {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px dashed white;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.5rem;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.equip-slot:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.empty-slot {
+    opacity: 0.5;
+    border-style: dashed;
 }
