@@ -6,10 +6,14 @@ const percentage_increase = Math.random() * (1 - 0.1) + 0.1;
 let activePiece = null;
 let isSpinning = false;
 const ruleTracker = {};
-const rollTracker = {};
+const roll_storyTracker = {};
 let canvas, ctx;
 let isDrawing = false;
 let lastX = 0, lastY = 0;
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isPanning = false;
 let tool = "pen";
 // Values for each segment
 const values = [
@@ -186,14 +190,14 @@ function addRule(ruleName, description) {
 }
 
 function clearHistory() {
-    for (const type in rollTracker) {
-        if (rollTracker[type].button) {
-            rollTracker[type].button.remove(); // Remove button from DOM
+    for (const type in roll_storyTracker) {
+        if (roll_storyTracker[type].button) {
+            roll_storyTracker[type].button.remove(); // Remove button from DOM
         }
     }
     // Clear the tracker
-    for (const key in rollTracker) {
-        delete rollTracker[key];
+    for (const key in roll_storyTracker) {
+        delete roll_storyTracker[key];
     }
 }
 
@@ -279,7 +283,7 @@ function rollDice(dice_type, amount, increase) {
         totalButton.innerText = `Total: ${totalValue}`;
         document.querySelector(".content").appendChild(totalButton);
         const uniqid = Date.now();
-        rollTracker[uniqid] = { button: totalButton };
+        roll_storyTracker[uniqid] = { button: totalButton };
     }
 
     return totalValue;
@@ -295,7 +299,7 @@ function addRoll(type, total, increase, rawRoll) {
     button.innerText = displayText;
     document.querySelector(".content").appendChild(button);
     const uniqid = Date.now();
-    rollTracker[uniqid] = { button: button };
+    roll_storyTracker[uniqid] = { button: button };
 }
 
 function addAction(name, type, dice_type = null) {
@@ -332,7 +336,7 @@ function addAction(name, type, dice_type = null) {
         button.innerText = story;
         document.querySelector(".content").appendChild(button);
         const uniqid = Date.now();
-        rollTracker[uniqid] = { button: button };
+        roll_storyTracker[uniqid] = { button: button };
     }
 
     return story;
@@ -351,7 +355,7 @@ function generateItem(amount) {
         // Get a random item from our database
         const randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
         const randomPercentage = Math.random() * (100 - 1) + 1;
-        
+
         // Create item slot
         const itemSlot = document.createElement("div");
         itemSlot.className = "item-slot";
@@ -360,7 +364,7 @@ function generateItem(amount) {
         itemSlot.dataset.itemType = randomItem.type;
         itemSlot.dataset.percentage = randomPercentage.toFixed(0);
         itemSlot.title = randomItem.description;
-        
+
         // Create icon
         const icon = document.createElement("i");
         icon.className = "fas " + randomItem.icon;
@@ -378,7 +382,7 @@ function generateItem(amount) {
             itemSlot.appendChild(percentageLabel);
             itemSlot.appendChild(label);
         }
-        
+
         // Store item description
         itemSlot.dataset.itemDesc = randomItem.description;
 
@@ -399,17 +403,17 @@ function generateItem(amount) {
                         if (this.dataset.itemDice) {
                             rollDice(this.dataset.itemDice, 1, this.dataset.percentage);
                         }
-                        
+
                         // Always add the action
                         addAction(this.dataset.itemName, this.dataset.itemType, this.dataset.itemDice);
-                        
+
                         // For consumable items without dice, remove after use
                         if (!this.dataset.itemDice && this.dataset.itemType === "consumable") {
                             const parentSlot = this.parentElement;
                             if (parentSlot.classList.contains('equip-slot')) {
                                 parentSlot.classList.add('empty-slot');
                                 parentSlot.innerHTML = '';
-                                
+
                                 // Add placeholder icon back
                                 const placeholder = document.createElement("i");
                                 placeholder.className = "fas fa-plus";
@@ -482,27 +486,27 @@ function equipItem(itemElement) {
                     // Calculate percentage bonus properly (ensuring it's a number)
                     const percentageValue = parseFloat(this.dataset.percentage) || 0;
                     const randomPercentage = Math.random() * percentageValue;
-                    
+
                     // Only roll dice if this item has dice
                     if (this.dataset.itemDice) {
                         rollDice(this.dataset.itemDice, 1, randomPercentage.toFixed(0));
                     }
-                    
+
                     // Always add the action
                     addAction(this.dataset.itemName, this.dataset.itemType, this.dataset.itemDice);
-                    
+
                     // For consumable items without dice, remove after use
                     if (!this.dataset.itemDice && this.dataset.itemType === "consumable") {
                         const parentSlot = this.parentElement;
                         parentSlot.classList.add('empty-slot');
                         parentSlot.innerHTML = '';
-                        
+
                         // Add placeholder icon back
                         const placeholder = document.createElement("i");
                         placeholder.className = "fas fa-plus";
                         placeholder.style.opacity = "0.3";
                         parentSlot.appendChild(placeholder);
-                        
+
                         // Update original inventory item
                         const originalId = this.dataset.originalId;
                         if (originalId) {
@@ -611,6 +615,11 @@ function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+function updateCanvasPosition() {
+    canvas.style.transform = `scale(${scale}) translate(${-offsetX}px, ${-offsetY}px)`;
+    canvas.style.transformOrigin = 'top left';
+}
+
 spinBtn.addEventListener('click', rotateWheel);
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -623,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     canvas = document.getElementById("drawing-canvas");
     ctx = canvas.getContext("2d");
+
     // Event listeners
     canvas.addEventListener("mousedown", (e) => {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        lastX = e.clientX - rect.left;
-        lastY = e.clientY - rect.top;
+        lastX = (e.clientX - rect.left) / scale;
+        lastY = (e.clientY - rect.top) / scale;
     });
 
     canvas.addEventListener("mouseup", () => {
@@ -638,8 +648,8 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.addEventListener("mousemove", (e) => {
         if (!isDrawing) return;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = (e.clientX - rect.left) / scale;
+        const y = (e.clientY - rect.top) / scale;
 
         ctx.strokeStyle = tool === "pen" ? "white" : "#222";
         ctx.lineWidth = tool === "pen" ? 2 : 20;
@@ -652,4 +662,103 @@ document.addEventListener('DOMContentLoaded', function () {
 
         [lastX, lastY] = [x, y];
     });
+
+    function pan(e) {
+        if (!isPanning) return;
+
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+
+        offsetX -= dx / scale;
+        offsetY -= dy / scale;
+
+        updateCanvasPosition();
+
+        lastX = e.clientX;
+        lastY = e.clientY;
+    }
+
+    function stopPan() {
+        isPanning = false;
+    }
+
+    function zoom(e) {
+        e.preventDefault();
+
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convert mouse position to canvas coordinates
+        const canvasX = mouseX / scale + offsetX;
+        const canvasY = mouseY / scale + offsetY;
+
+        // Determine zoom direction
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+
+        // Limit zoom level
+        const newScale = Math.min(Math.max(scale * zoomFactor, 0.1), 5);
+
+        if (newScale !== scale) {
+            // Adjust offset to zoom toward mouse position
+            offsetX = canvasX - mouseX / newScale;
+            offsetY = canvasY - mouseY / newScale;
+
+            scale = newScale;
+            updateCanvasPosition();
+
+            // Show zoom level
+            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
+        }
+    }
+
+    function zoomIn() {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = centerX / scale + offsetX;
+        const canvasY = centerY / scale + offsetY;
+
+        const newScale = Math.min(scale * 1.2, 5);
+
+        if (newScale !== scale) {
+            offsetX = canvasX - centerX / newScale;
+            offsetY = canvasY - centerY / newScale;
+
+            scale = newScale;
+            updateCanvasPosition();
+
+            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
+        }
+    }
+
+    function zoomOut() {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        const rect = canvas.getBoundingClientRect();
+        const canvasX = centerX / scale + offsetX;
+        const canvasY = centerY / scale + offsetY;
+
+        const newScale = Math.max(scale * 0.8, 0.1);
+
+        if (newScale !== scale) {
+            offsetX = canvasX - centerX / newScale;
+            offsetY = canvasY - centerY / newScale;
+
+            scale = newScale;
+            updateCanvasPosition();
+
+            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
+        }
+    }
+
+    function centerView() {
+        offsetX = canvas.width / 2 - window.innerWidth / 2 / scale;
+        offsetY = canvas.height / 2 - window.innerHeight / 2 / scale;
+        updateCanvasPosition();
+        showStatus('View centered');
+    }
+    canvas.addEventListener("wheel", zoom);
 });

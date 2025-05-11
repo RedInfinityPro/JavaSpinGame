@@ -408,6 +408,7 @@ body {
     left: 0;
     background: #222;
     cursor: crosshair;
+    touch-action: none;
 }
 
 .toolbar {
