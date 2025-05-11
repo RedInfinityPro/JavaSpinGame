@@ -7,6 +7,10 @@ let activePiece = null;
 let isSpinning = false;
 const ruleTracker = {};
 const rollTracker = {};
+let canvas, ctx;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let tool = "pen";
 // Values for each segment
 const values = [
     "Wildcard Trickster",
@@ -31,111 +35,111 @@ const values_def = [
 ]
 
 const itemsDatabase = [
-    { 
-        icon: "fa-gavel", 
-        name: "Warhammer", 
+    {
+        icon: "fa-gavel",
+        name: "Warhammer",
         dice: "1d8",
         description: "A heavy, two-handed hammer used for crushing opponents",
         type: "weapon",
         percentage: 0
     },
-    { 
-        icon: "fa-key", 
+    {
+        icon: "fa-key",
         name: "Skeleton Key",
         description: "Opens any non-magical lock with ease",
         type: "tool",
         percentage: 0
     },
-    { 
-        icon: "fa-hammer", 
-        name: "War Maul", 
+    {
+        icon: "fa-hammer",
+        name: "War Maul",
         dice: "1d12",
         description: "Massive hammer capable of dealing devastating blows",
         type: "weapon",
         percentage: 0
     },
-    { 
-        icon: "fa-medkit", 
-        name: "Medkit", 
+    {
+        icon: "fa-medkit",
+        name: "Medkit",
         dice: "1d6",
         description: "Restores 1d6 health points when used",
         type: "consumable",
         percentage: 0
     },
-    { 
-        icon: "fa-flask", 
-        name: "Potion of Healing", 
+    {
+        icon: "fa-flask",
+        name: "Potion of Healing",
         dice: "1d6",
         description: "Magical liquid that restores 1d6 health when drunk",
         type: "consumable",
-        percentage: 0 
+        percentage: 0
     },
-    { 
-        icon: "fa-ring", 
+    {
+        icon: "fa-ring",
         name: "Ring of Power",
         description: "Ancient ring that enhances the wearer's magical abilities",
         type: "accessory",
         percentage: 0
     },
-    { 
-        icon: "fa-shoe-prints", 
+    {
+        icon: "fa-shoe-prints",
         name: "Boots of Speed",
         description: "Increases movement speed by 10 feet",
         type: "armor",
         percentage: 0
     },
-    { 
-        icon: "fa-book", 
-        name: "Spell Book", 
+    {
+        icon: "fa-book",
+        name: "Spell Book",
         dice: "1d100",
         description: "Contains powerful spells and arcane knowledge",
         type: "magic",
         percentage: 0
     },
-    { 
-        icon: "fa-map", 
+    {
+        icon: "fa-map",
         name: "Ancient Map",
         description: "Shows the location of a hidden treasure",
         type: "tool",
         percentage: 0
     },
-    { 
-        icon: "fa-suitcase", 
+    {
+        icon: "fa-suitcase",
         name: "Adventurer's Pack",
         description: "Contains basic survival equipment for adventuring",
         type: "tool",
         percentage: 0
     },
-    { 
-        icon: "fa-shield-alt", 
-        name: "Shield", 
+    {
+        icon: "fa-shield-alt",
+        name: "Shield",
         dice: "1d10",
         description: "Provides additional defense against attacks",
         type: "armor",
         percentage: 0
     },
-    { 
-        icon: "fa-bomb", 
-        name: "Grenade", 
+    {
+        icon: "fa-bomb",
+        name: "Grenade",
         dice: "1d20",
         description: "Explodes on impact, dealing 1d20 damage in a 10ft radius",
         type: "consumable",
-        percentage: 0 
+        percentage: 0
     },
-    { 
-        icon: "fa-feather", 
+    {
+        icon: "fa-feather",
         name: "Phoenix Feather",
         description: "Can resurrect a fallen ally once",
         type: "consumable",
-        percentage: 0 
+        percentage: 0
     },
-    { 
-        icon: "fa-skull", 
-        name: "Cursed Totem", 
+    {
+        icon: "fa-skull",
+        name: "Cursed Totem",
         dice: "1d4",
         description: "Deals 1d4 damage to enemies but also harms the wielder",
         type: "magic",
-        percentage: 0 
+        percentage: 0
     }
 ];
 
@@ -248,7 +252,7 @@ function rollDice(dice_type, amount, increase) {
     let endvalue = 0;
     const increase_2 = Number(increase);
     if (!amount) return;
-    
+
     switch (dice_type) {
         case "1d4": endvalue = 4; break;
         case "1d6": endvalue = 6; break;
@@ -259,7 +263,7 @@ function rollDice(dice_type, amount, increase) {
         case "1d100": endvalue = 100; break;
         default: return null;
     }
-    
+
     // Perform the roll(s)
     for (let i = 0; i < amount; i++) {
         const rawRoll = Math.floor(1 + Math.random() * endvalue);
@@ -267,7 +271,7 @@ function rollDice(dice_type, amount, increase) {
         totalValue += rollValue;
         addRoll(dice_type, totalValue, increase_2, rawRoll);
     }
-    
+
     // Add the total for multiple dice
     if (amount > 1) {
         const totalButton = document.createElement("button");
@@ -277,7 +281,7 @@ function rollDice(dice_type, amount, increase) {
         const uniqid = Date.now();
         rollTracker[uniqid] = { button: totalButton };
     }
-    
+
     return totalValue;
 }
 
@@ -336,7 +340,7 @@ function generateItem(amount) {
         itemSlot.dataset.itemDesc = randomItem.description;
 
         // Correct mouse handling
-        itemSlot.addEventListener("mousedown", function(event) {
+        itemSlot.addEventListener("mousedown", function (event) {
             event.preventDefault(); // Optional: prevent default behaviors like context menu
 
             switch (event.button) {
@@ -355,7 +359,7 @@ function generateItem(amount) {
         });
 
         // Prevent right-click menu
-        itemSlot.addEventListener("contextmenu", function(e) {
+        itemSlot.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
 
@@ -369,7 +373,7 @@ function toggleEquip(itemElement) {
     setTimeout(() => {
         itemElement.classList.remove('pulse');
     }, 300);
-    
+
     if (itemElement.classList.contains('equipped')) {
         // Item is equipped, so unequip it
         unequipItem(itemElement);
@@ -388,18 +392,18 @@ function equipItem(itemElement) {
         alert("You have no empty equipment slots!");
         return;
     }
-    
+
     const firstEmptySlot = equippedSlots[0];
-    
+
     // Clone the item
     const clonedItem = itemElement.cloneNode(true);
-    
+
     // Update classes and data attributes
     clonedItem.classList.add('equipped');
     clonedItem.dataset.originalId = itemElement.dataset.itemId;
-    
+
     // Add click handler to unequip
-    clonedItem.addEventListener("mousedown", function(event) {
+    clonedItem.addEventListener("mousedown", function (event) {
         event.preventDefault(); // Optional: prevent default behaviors like context menu
 
         switch (event.button) {
@@ -417,17 +421,17 @@ function equipItem(itemElement) {
                 break;
         }
     });
-    
+
     // Remove placeholder icon from slot
     firstEmptySlot.innerHTML = '';
-    
+
     // Add item to equip slot
     firstEmptySlot.appendChild(clonedItem);
     firstEmptySlot.classList.remove('empty-slot');
-    
+
     // Mark original inventory item as equipped
     itemElement.classList.add('equipped');
-    
+
     // Optional: Update character stats based on equipped item
     updateCharacterStats();
 }
@@ -439,14 +443,14 @@ function unequipItem(equippedItem) {
         // Mark parent slot as empty
         const parentSlot = equippedItem.parentElement;
         parentSlot.classList.add('empty-slot');
-        
+
         // Add placeholder icon back
         parentSlot.innerHTML = '';
         const placeholder = document.createElement("i");
         placeholder.className = "fas fa-plus";
         placeholder.style.opacity = "0.3";
         parentSlot.appendChild(placeholder);
-        
+
         // Find original inventory item and update its status
         const originalId = equippedItem.dataset.originalId;
         if (originalId) {
@@ -455,22 +459,22 @@ function unequipItem(equippedItem) {
                 originalItem.classList.remove('equipped');
             }
         }
-    } 
+    }
     // Handle direct click on inventory item
     else {
         // Find corresponding equipped item
         const itemId = equippedItem.dataset.itemId;
         const equippedVersion = document.querySelector(`.equip-slot .item-slot[data-original-id="${itemId}"]`);
-        
+
         if (equippedVersion) {
             // Trigger unequip on the equipped version
             toggleEquip(equippedVersion);
         }
-        
+
         // Update inventory item status
         equippedItem.classList.remove('equipped');
     }
-    
+
     // Update character stats
     updateCharacterStats();
 }
@@ -479,7 +483,7 @@ function unequipItem(equippedItem) {
 function updateCharacterStats() {
     // This is where you would calculate and update character stats
     // based on equipped items
-    
+
     // For this demo, we'll just simulate it with a visual feedback
     const statsBar = document.querySelector('.stats-bar');
     statsBar.style.backgroundColor = 'rgba(117, 121, 231, 0.2)';
@@ -504,6 +508,14 @@ function equippedInventoryGenerate(amount) {
     }
 }
 
+function setTool(selectedTool) {
+    tool = selectedTool;
+}
+
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 spinBtn.addEventListener('click', rotateWheel);
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -513,4 +525,36 @@ document.addEventListener('DOMContentLoaded', function () {
     percentage();
     generateItem(10);
     equippedInventoryGenerate(6);
+
+    canvas = document.getElementById("drawing-canvas");
+    ctx = canvas.getContext("2d");
+    // Event listeners
+    canvas.addEventListener("mousedown", (e) => {
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        isDrawing = false;
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        ctx.strokeStyle = tool === "pen" ? "white" : "#222";
+        ctx.lineWidth = tool === "pen" ? 2 : 20;
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        [lastX, lastY] = [x, y];
+    });
 });

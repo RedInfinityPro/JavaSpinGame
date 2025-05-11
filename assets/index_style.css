@@ -64,7 +64,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.7));
+    background: radial-gradient(circle at center, transparent, rgba(0, 0, 0, 0.7));
 }
 
 .wheel-name {
@@ -88,8 +88,8 @@ body {
     height: 70%;
     top: -10%;
     border-radius: 50%;
-    box-shadow: 0 0 0 10px rgba(255,255,255,0.1), 
-                0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.1),
+        0 0 20px rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -109,7 +109,7 @@ body {
     height: 20%;
     background: radial-gradient(circle at center, #fff, #ddd);
     border-radius: 50%;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .wheel-pointer {
@@ -121,7 +121,7 @@ body {
     height: 40px;
     background: #ff0000;
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
     z-index: 100;
 }
 
@@ -139,7 +139,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .segment::before {
@@ -149,7 +149,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.2), transparent);
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent);
 }
 
 .segment span {
@@ -400,4 +400,29 @@ body {
 .empty-slot {
     opacity: 0.5;
     border-style: dashed;
+}
+
+.drawing-canvas {
+    position: absolute;
+    top: 35;
+    left: 0;
+    background: #222;
+    cursor: crosshair;
+}
+
+.toolbar {
+    position: absolute;
+    top: 20%;
+    left: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10000;
+}
+
+.toolbar button {
+    padding: 10px;
+    background: var(--button-gradient);
+    border: 1px solid white;
+    color: white;
+    cursor: pointer;
 }
