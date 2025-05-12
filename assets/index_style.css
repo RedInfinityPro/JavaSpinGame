@@ -32,13 +32,15 @@ body {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    cursor: pointer;
+    font-size: 24px;
     color: white;
-    transform: scale(1.1);
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 1000;
 }
 
 .close-btn:hover {
-    color: #ff0000;
+    color: red;
     transform: scale(1.5);
 }
 
@@ -71,6 +73,7 @@ body {
     position: absolute;
     top: 1%;
     color: white;
+    user-select: none;
 }
 
 .wheel-container {
@@ -98,8 +101,8 @@ body {
 }
 
 .wheel label {
-    z-index: 1000;
     user-select: none;
+    z-index: 1000;
 }
 
 .wheel::after {
@@ -122,7 +125,6 @@ body {
     background: #ff0000;
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-    z-index: 100;
 }
 
 .segment {
@@ -249,7 +251,7 @@ body {
     align-items: center;
     text-align: center;
     border-radius: 10px;
-    z-index: 1000;
+    user-select: none;
 }
 
 .searchbar input {
@@ -316,6 +318,14 @@ body {
     margin: 1rem 0;
     color: #fff;
     gap: 20px;
+    background: transparent;
+}
+
+.scroll-container {
+    position: relative;
+    width: 60vw;
+    height: 20vh;
+    overflow-y: scroll;
 }
 
 .inventory-grid {
@@ -417,7 +427,6 @@ body {
     left: 10px;
     display: flex;
     gap: 10px;
-    z-index: 10000;
 }
 
 .toolbar button {

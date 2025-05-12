@@ -3,6 +3,12 @@ const wheel = document.getElementById("wheel");
 const spinBtn = document.getElementById("spinBtn");
 const winnerValue = document.getElementById("winnerValue");
 const board = document.querySelector(".board");
+const canvas = document.getElementById('drawing-canvas');
+const ctx = canvas.getContext('2d');
+const notepad = document.getElementById('note-pad');
+const penBtn = document.getElementById('pen-btn');
+const eraserBtn = document.getElementById('eraser-btn');
+const clearBtn = document.getElementById('clear-btn');
 // Variables
 let activePiece = null;
 let isSpinning = false;
@@ -11,12 +17,13 @@ let isPanning = false;
 let tool = "pen";
 const ruleTracker = {};
 const rollStoryTracker = {};
+const percentageIncrease = Math.random() * 0.9 + 0.1;
 // Canvas properties
-let canvas, ctx;
 let lastX = 0, lastY = 0;
 let scale = 1, offsetX = 0, offsetY = 0;
-// Constants
-const percentageIncrease = Math.random() * 0.9 + 0.1;
+let isDragging = false;
+let notepadStartX = 0;
+let notepadStartY = 0;
 
 const BASE_STATS = {
     health: 40,
@@ -24,11 +31,15 @@ const BASE_STATS = {
     attack: 15,
     speed: 30,
     magic: 30,
+    gold: 0,
+    level: 0,
+    xp: 0,
 };
 
 let currentStats = {
-    health: 20,
+    health: 40,
     magic: 30,
+    xp: 0,
 };
 
 // Values for each segment
@@ -152,15 +163,22 @@ const itemsDatabase = [
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
     document.getElementById(formId).style.display = 'block';
-
+    notepadStartX = 0;
+    notepadStartY = 0;
+    notepad.style.left = (notepadStartX) + 'px';
+    notepad.style.top = (notepadStartY) + 'px';
 }
 
 function closeForm(formId) {
     document.getElementById(formId).style.opacity = 0;
     document.getElementById(formId).style.display = 'none';
+    notepadStartX = 0;
+    notepadStartY = 0;
+    notepad.style.left = (notepadStartX) + 'px';
+    notepad.style.top = (notepadStartY) + 'px';
 }
 
-function percentage() {
+function wheel_percentage() {
     // Format to 2 decimal places and update the label
     document.getElementById('percentage-label').innerText = percentageIncrease.toFixed(2) + '%';
 }
@@ -311,51 +329,55 @@ function addRoll(type, total, increase, rawRoll) {
 
 function addAction(name, type, dice_type = null) {
     let story = "";
+    let amount = null;
     // Specific handling for different item types
-    switch (name) {
-        case "Skeleton Key":
-            story = "You use a Skeleton Key.";
-            removeItemFromInventory(name);
-            break;
-        case "Ring of Power":
-            story = "You feel a surge of strength.";
-            removeItemFromInventory(name);
-            break;
-        case "Boots of Speed":
-            story = "You dash forward with incredible speed.";
-            removeItemFromInventory(name);
-            break;
-        case "Ancient Map":
-            story = "You found a new area, one map used.";
-            removeItemFromInventory(name);
-            break;
-        case "Adventurer's Pack":
-            story = "You have found some useful supplies.";
-            removeItemFromInventory(name);
-            break;
-        case "Phoenix Feather":
-            story = "1 Phoenix Feather used to revive.";
-            removeItemFromInventory(name);
-            break;
-        default:
-            story = `You used ${name}.`;
-            // Remove consumable items by default
-            if (type === "consumable") {
+    if (!dice_type) {
+        switch (name) {
+            case "Skeleton Key":
+                story = "You use a Skeleton Key.";
                 removeItemFromInventory(name);
-            }
-            break;
+                break;
+            case "Ring of Power":
+                story = "You feel a surge of strength.";
+                removeItemFromInventory(name);
+                break;
+            case "Boots of Speed":
+                story = "You dash forward with incredible speed.";
+                removeItemFromInventory(name);
+                break;
+            case "Ancient Map":
+                story = "You found a new area, one map used.";
+                removeItemFromInventory(name);
+                break;
+            case "Adventurer's Pack":
+                story = "You have found some useful supplies.";
+                amount = Math.random() * 10 + 1;
+                generateItem(amount, "Adventurer's Pack");
+                removeItemFromInventory(name);
+                break;
+            case "Phoenix Feather":
+                story = "1 Phoenix Feather used to revive.";
+                removeItemFromInventory(name);
+                break;
+            default:
+                story = `You used ${name}.`;
+                // Remove consumable items by default
+                if (type === "consumable") {
+                    removeItemFromInventory(name);
+                }
+                break;
+        }
+
+        // Create a button to display the story
+        const button = document.createElement("button");
+        button.classList.add("track");
+        button.innerText = story;
+        document.querySelector(".content").appendChild(button);
+        const uniqid = Date.now();
+        rollStoryTracker[uniqid] = { button: button };
     }
-
-    // Create a button to display the story
-    const button = document.createElement("button");
-    button.classList.add("track");
-    button.innerText = story;
-    document.querySelector(".content").appendChild(button);
-    const uniqid = Date.now();
-    rollStoryTracker[uniqid] = { button: button };
-
     // Update status bar
-    updateStatusBar(name, type);
+    updateStatusBar(name, type, amount.toFixed(0));
 
     return story;
 }
@@ -366,19 +388,16 @@ function removeItemFromInventory(itemName) {
         if (item.dataset.itemName === itemName) {
             // If the item is equipped, remove from equipped slots too
             const equippedItem = document.querySelector(`.equip-slot .item-slot[data-original-id="${item.dataset.itemId}"]`);
-
             if (equippedItem) {
                 const parentSlot = equippedItem.closest('.equip-slot');
                 parentSlot.classList.add('empty-slot');
                 parentSlot.innerHTML = '';
-
                 // Add placeholder icon back
                 const placeholder = document.createElement("i");
                 placeholder.className = "fas fa-plus";
                 placeholder.style.opacity = "0.3";
                 parentSlot.appendChild(placeholder);
             }
-
             // Remove the item from the inventory grid
             item.remove();
             break;
@@ -386,14 +405,15 @@ function removeItemFromInventory(itemName) {
     }
 }
 
-
-function generateItem(amount) {
+function generateItem(amount, except = null) {
     const inventory = document.querySelector(".inventory-grid");
-    inventory.innerHTML = ''; // Clear existing items
 
     for (let i = 0; i < amount; i++) {
         // Get a random item from our database
-        const randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
+        let randomItem;
+        do {
+            randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
+        } while (randomItem.name === except);
         const randomPercentage = Math.random() * (100 - 1) + 1;
 
         // Create item slot
@@ -647,7 +667,7 @@ function equippedInventoryGenerate(amount) {
     }
 }
 
-function updateStatusBar(itemName, itemType) {
+function updateStatusBar(itemName, itemType, amount = null) {
     const statusBar = document.querySelector('.stats-bar');
     // Create a status update element
     const statusUpdate = document.createElement('div');
@@ -664,20 +684,23 @@ function updateStatusBar(itemName, itemType) {
             statusUpdate.style.color = 'green';
             break;
         default:
-            statusUpdate.innerText = `Used: ${itemName}`;
+            if (amount && amount > 0) {
+                statusUpdate.innerText = `Used: ${itemName}, ${amount} items found`;
+            } else {
+                statusUpdate.innerText = `Used: ${itemName}`;
+            }
             statusUpdate.style.color = 'blue';
     }
 
     // Animate status bar
     statusBar.style.backgroundColor = 'rgba(117, 121, 231, 0.4)';
-
     // Add status update to the bar
     statusBar.appendChild(statusUpdate);
 
     // Remove the status update after a few seconds
     setTimeout(() => {
         statusUpdate.remove();
-        statusBar.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+        statusBar.style.backgroundColor = 'transparent';
     }, 3000);
 }
 
@@ -704,69 +727,179 @@ function modifyItemHandler() {
 
 function setTool(selectedTool) {
     tool = selectedTool;
+    // Update button styles
+    penBtn.classList.toggle('active', tool === 'pen');
+    eraserBtn.classList.toggle('active', tool === 'eraser');
+}
+
+function keepInBounds() {
+    const rect = notepad.getBoundingClientRect();
+    const maxLeft = window.innerWidth - rect.width;
+    const maxTop = window.innerHeight - rect.height;
+
+    let left = parseInt(notepad.style.left);
+    let top = parseInt(notepad.style.top);
+
+    left = Math.min(left, maxLeft);
+    top = Math.min(top, maxTop);
+
+    notepad.style.left = left + 'px';
+    notepad.style.top = top + 'px';
 }
 
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function updateCanvasPosition() {
-    canvas.style.transform = `scale(${scale}) translate(${-offsetX}px, ${-offsetY}px)`;
-    canvas.style.transformOrigin = 'top left';
-}
-
 spinBtn.addEventListener('click', rotateWheel);
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Setup rules, items, etc.
-    addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
-    addRule('Rule 2', 'No rules can be removed or changed during play.');
-    addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
-    percentage();
-    generateItem(10);
-    equippedInventoryGenerate(6);
+    notepad.addEventListener('mousedown', (e) => {
+        if (!e.target.closest('h2')) return;
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
 
-    // Initialize canvas
-    canvas = document.getElementById("drawing-canvas");
-    if (!canvas) {
-        console.error("Canvas element not found.");
-        return;
-    }
+        const rect = notepad.getBoundingClientRect();
+        notepadStartX = rect.left / 200;
+        notepadStartY = rect.top / 200;
 
-    ctx = canvas.getContext("2d");
-    if (!ctx) {
-        console.error("Failed to get 2D context.");
-        return;
-    }
+        notepad.style.left = notepadStartX + 'px';
+        notepad.style.top = notepadStartY + 'px';
 
-    // Add event listeners to canvas
-    canvas.addEventListener("mousedown", (e) => {
-        isDrawing = true;
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - dragStartX;
+        const deltaY = e.clientY - dragStartY;
+
+        notepad.style.left = (notepadStartX + deltaX) + 'px';
+        notepad.style.top = (notepadStartY + deltaY) + 'px';
+
+        keepInBounds();
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // Drawing functionality
+    canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         lastX = e.clientX - rect.left;
         lastY = e.clientY - rect.top;
+        isDrawing = true;
     });
 
-    canvas.addEventListener("mouseup", () => {
-        isDrawing = false;
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
+    canvas.addEventListener('mousemove', (e) => {
         if (!isDrawing) return;
+
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        ctx.strokeStyle = tool === "pen" ? "white" : "#222";
-        ctx.lineWidth = tool === "pen" ? 2 : 20;
-        ctx.lineCap = "round";
-
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
+        ctx.strokeStyle = tool === 'pen' ? 'var(--pen-color)' : 'var(--eraser-color)';
+        ctx.lineWidth = tool === 'pen' ? 2 : 20;
+        ctx.lineCap = 'round';
         ctx.stroke();
 
         lastX = x;
         lastY = y;
     });
+
+    canvas.addEventListener('mouseup', () => {
+        isDrawing = false;
+    });
+
+    canvas.addEventListener('mouseout', () => {
+        isDrawing = false;
+    });
+
+    // Touch support for drawing
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+        isDrawing = true;
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = tool === 'pen' ? 'var(--pen-color)' : 'var(--eraser-color)';
+        ctx.lineWidth = tool === 'pen' ? 2 : 20;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        lastX = x;
+        lastY = y;
+    });
+
+    canvas.addEventListener('touchend', () => {
+        isDrawing = false;
+    });
+
+    // Touch support for dragging
+    notepad.addEventListener('touchstart', (e) => {
+        if (!e.target.closest('h2')) return;
+        isDragging = true;
+        const touch = e.touches[0];
+        dragStartX = touch.clientX;
+        dragStartY = touch.clientY;
+
+        const rect = notepad.getBoundingClientRect();
+        notepadStartX = rect.left;
+        notepadStartY = rect.top;
+        e.preventDefault();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - dragStartX;
+        const deltaY = touch.clientY - dragStartY;
+
+        notepad.style.left = (notepadStartX + deltaX) + 'px';
+        notepad.style.top = (notepadStartY + deltaY) + 'px';
+
+        keepInBounds();
+
+        if (isDrawing) e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+
+    // Button event listeners
+    penBtn.addEventListener('click', () => setTool('pen'));
+    eraserBtn.addEventListener('click', () => setTool('eraser'));
+    clearBtn.addEventListener('click', clearCanvas);
+    // Initially position the notepad
+    keepInBounds();
+    // Setup rules, items, etc.
+    addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
+    addRule('Rule 2', 'No rules can be removed or changed during play.');
+    addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
+    wheel_percentage();
+    generateItem(12);
+    equippedInventoryGenerate(6);
 });

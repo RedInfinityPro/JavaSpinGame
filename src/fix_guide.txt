@@ -1,0 +1,17 @@
+* Need to fix the status bar to keep updated values instead of holding values in HTML.
+
+* Need to add a popup for each rule for a visual guide.
+
+* Add a shop window and allow the user to buy items.
+
+* Add a gold counter in user inventory.
+
+* Add a leveling-up function.
+
+* Start wheel at a random position.
+
+* Allow the map to be moved around the screen.
+
+* Add a scroll bar to the inventory.
+
+* Don't allow multiple notifications

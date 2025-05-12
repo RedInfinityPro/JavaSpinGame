@@ -11,8 +11,8 @@
 </head>
 
 <body>
-    <div class="spinWheel-box" , id="spinWheel">
-        <span class="close-btn" onclick="closeForm('spinWheel')">&times;</span>
+    <div class="spinWheel-box" id="spinWheel">
+        <span class="close-btn" id="close-btn" onclick="closeForm('spinWheel')">&times;</span>
         <label class="wheel-name" title="Per spin, you add a new rule">Rules Spin Wheel</label>
         <div class="wheel-container">
             <div class="wheel-pointer"></div>
@@ -57,20 +57,26 @@
         <input id="searchbar" onkeyup="search_elements()" type="text" name="search" placeholder="Search...">
         <button class="fa fa-user" title="player invintory" onclick="showForm('player-inventory')"></button>
         <button class="fa fa-store" title="store" onclick="showForm('store-inventory')"></button>
-        <button class="fa fa-map" title="map" onclick="showForm('map')"></button>
+        <button class="fa fa-file" title="note pad" onclick="showForm('note-pad')"></button>
         <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
     </div>
 
-    <div class="popup-form" id="player-inventory">
+    <div class="popup-form" id="player-inventory" style="z-index: 200;">
         <div class="form-container">
-            <span class="close-btn" onclick="closeForm('player-inventory')">&times;</span>
+            <span class="close-btn" id="close-btn" onclick="closeForm('player-inventory')">&times;</span>
             <h2><i class="fa fa-user"></i> Player Inventory</h2>
-            <div class="stats-bar">
-                <span><i class="fas fa-heart" id="health"></i> HP: 0/40</span>
+            <div class="stats-bar" id="user-baic">
+                <span><i class="fas fa-arrow-up" id="level"></i> Level: 1</span>
+                <span><i class="fas fa-circle" id="xp"></i> xp: 0</span>
+                <span><i class="fas fa-running" id="speed"></i> Speed: 30ft</span>
+                <span><i class="fas fa-coins" id="gold"></i> Gold: 0</span>
+            </div>
+
+            <div class="stats-bar" id="user-advanced">
+                <span><i class="fas fa-heart" id="health"></i> HP: 40/40</span>
                 <span><i class="fas fa-shield-alt" id="armor"></i> Armor: 15</span>
                 <span><i class="fas fa-gavel" id="attack"></i> Attack: 15</span>
-                <span><i class="fas fa-running" id="speed"></i> Speed: 30ft</span>
-                <span><i class="fas fa-magic" id="magic"></i> magic: 30</span>
+                <span><i class="fas fa-magic" id="magic"></i> Magic: 30</span>
             </div>
 
             <h3>Equipped Weapons</h3>
@@ -79,21 +85,22 @@
             </div>
             <br></br>
             <h3>Inventory</h3>
-            <div class="inventory-grid" id="inventoryGrid" oncontextmenu="return false;">
-
+            <div class="scroll-container">
+                <div class="inventory-grid" id="inventoryGrid" oncontextmenu="return false;">
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="popup-form" id="map" style="width: 309px; height: 385px;">
+    <div class="popup-form" id="note-pad" style="width: 309px; height: 385px; z-index: 300;">
         <div class="form-container">
-            <h2><i class="fa fa-map"></i> Player Map</h2>
-            <span class="close-btn" onclick="closeForm('map')">&times;</span>
+            <h2 style="cursor: move;"><i class="fa fa-file"></i> Note Pad</h2>
+            <span class="close-btn" id="close-btn" onclick="closeForm('note-pad')">&times;</span>
             <canvas id="drawing-canvas" class="drawing-canvas" width="305" height="305"></canvas>
             <div class="toolbar">
-                <button onclick="setTool('pen')">Pen</button>
-                <button onclick="setTool('eraser')">Eraser</button>
-                <button onclick="clearCanvas()">Clear</button>
+                <button id="pen-btn">Pen</button>
+                <button id="eraser-btn">Eraser</button>
+                <button id="clear-btn">Clear</button>
             </div>
         </div>
     </div>
