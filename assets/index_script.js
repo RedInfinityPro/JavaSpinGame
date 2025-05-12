@@ -1,20 +1,36 @@
-const wheel = document.getElementById('wheel');
-const spinBtn = document.getElementById('spinBtn');
-const winnerValue = document.getElementById('winnerValue');
-const board = document.querySelector('.board');
-const percentage_increase = Math.random() * (1 - 0.1) + 0.1;
+// DOM Elements
+const wheel = document.getElementById("wheel");
+const spinBtn = document.getElementById("spinBtn");
+const winnerValue = document.getElementById("winnerValue");
+const board = document.querySelector(".board");
+// Variables
 let activePiece = null;
 let isSpinning = false;
-const ruleTracker = {};
-const roll_storyTracker = {};
-let canvas, ctx;
 let isDrawing = false;
-let lastX = 0, lastY = 0;
-let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
 let isPanning = false;
 let tool = "pen";
+const ruleTracker = {};
+const rollStoryTracker = {};
+// Canvas properties
+let canvas, ctx;
+let lastX = 0, lastY = 0;
+let scale = 1, offsetX = 0, offsetY = 0;
+// Constants
+const percentageIncrease = Math.random() * 0.9 + 0.1;
+
+const BASE_STATS = {
+    health: 40,
+    armor: 15,
+    attack: 15,
+    speed: 30,
+    magic: 30,
+};
+
+let currentStats = {
+    health: 20,
+    magic: 30,
+};
+
 // Values for each segment
 const values = [
     "Wildcard Trickster",
@@ -44,108 +60,94 @@ const itemsDatabase = [
         name: "Warhammer",
         dice: "1d8",
         description: "A heavy, two-handed hammer used for crushing opponents",
-        type: "weapon",
-        percentage: 0
+        type: "weapon"
     },
     {
         icon: "fa-key",
         name: "Skeleton Key",
         description: "Opens any non-magical lock with ease",
-        type: "tool",
-        percentage: 0
+        type: "tool"
     },
     {
         icon: "fa-hammer",
         name: "War Maul",
         dice: "1d12",
         description: "Massive hammer capable of dealing devastating blows",
-        type: "weapon",
-        percentage: 0
+        type: "weapon"
     },
     {
         icon: "fa-medkit",
         name: "Medkit",
         dice: "1d6",
         description: "Restores 1d6 health points when used",
-        type: "consumable",
-        percentage: 0
+        type: "consumable"
     },
     {
         icon: "fa-flask",
         name: "Potion of Healing",
         dice: "1d6",
         description: "Magical liquid that restores 1d6 health when drunk",
-        type: "consumable",
-        percentage: 0
+        type: "consumable"
     },
     {
         icon: "fa-ring",
         name: "Ring of Power",
         description: "Ancient ring that enhances the wearer's magical abilities",
-        type: "accessory",
-        percentage: 0
+        type: "accessory"
     },
     {
         icon: "fa-shoe-prints",
         name: "Boots of Speed",
         description: "Increases movement speed by 10 feet",
-        type: "armor",
-        percentage: 0
+        type: "armor"
     },
     {
         icon: "fa-book",
         name: "Spell Book",
         dice: "1d100",
         description: "Contains powerful spells and arcane knowledge",
-        type: "magic",
-        percentage: 0
+        type: "magic"
     },
     {
         icon: "fa-map",
         name: "Ancient Map",
         description: "Shows the location of a hidden treasure",
-        type: "tool",
-        percentage: 0
+        type: "tool"
     },
     {
         icon: "fa-suitcase",
         name: "Adventurer's Pack",
         description: "Contains basic survival equipment for adventuring",
-        type: "tool",
-        percentage: 0
+        type: "tool"
     },
     {
         icon: "fa-shield-alt",
         name: "Shield",
         dice: "1d10",
         description: "Provides additional defense against attacks",
-        type: "armor",
-        percentage: 0
+        type: "armor"
     },
     {
         icon: "fa-bomb",
         name: "Grenade",
         dice: "1d20",
         description: "Explodes on impact, dealing 1d20 damage in a 10ft radius",
-        type: "consumable",
-        percentage: 0
+        type: "weapon"
     },
     {
         icon: "fa-feather",
         name: "Phoenix Feather",
         description: "Can resurrect a fallen ally once",
-        type: "consumable",
-        percentage: 0
+        type: "consumable"
     },
     {
         icon: "fa-skull",
         name: "Cursed Totem",
         dice: "1d4",
         description: "Deals 1d4 damage to enemies but also harms the wielder",
-        type: "magic",
-        percentage: 0
+        type: "magic"
     }
-];
+].map(item => ({ ...item, percentage: 0 }));
 
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
@@ -158,6 +160,11 @@ function closeForm(formId) {
     document.getElementById(formId).style.display = 'none';
 }
 
+function percentage() {
+    // Format to 2 decimal places and update the label
+    document.getElementById('percentage-label').innerText = percentageIncrease.toFixed(2) + '%';
+}
+
 // add content to panel
 function addRule(ruleName, description) {
     // First-time rule: assign random starting % between 0.1 and 1%
@@ -167,7 +174,7 @@ function addRule(ruleName, description) {
         if (ruleName == "Rule 1" || ruleName == "Rule 2" || ruleName == "Rule 3") {
             button.innerText = `100% change - ${ruleName}`;
         } else {
-            button.innerText = `${percentage_increase.toFixed(2)}% chance - ${ruleName}`;
+            button.innerText = `${percentageIncrease.toFixed(2)}% chance - ${ruleName}`;
         }
 
         button.title = description;
@@ -175,7 +182,7 @@ function addRule(ruleName, description) {
         // Store button and current percentage
         ruleTracker[ruleName] = {
             button: button,
-            percentage: percentage_increase
+            percentage: percentageIncrease
         };
     } else {
         // Rule exists: increase percentage
@@ -190,14 +197,14 @@ function addRule(ruleName, description) {
 }
 
 function clearHistory() {
-    for (const type in roll_storyTracker) {
-        if (roll_storyTracker[type].button) {
-            roll_storyTracker[type].button.remove(); // Remove button from DOM
+    for (const type in rollTracker) {
+        if (rollTracker[type].button) {
+            rollTracker[type].button.remove(); // Remove button from DOM
         }
     }
     // Clear the tracker
-    for (const key in roll_storyTracker) {
-        delete roll_storyTracker[key];
+    for (const key in rollTracker) {
+        delete rollTracker[key];
     }
 }
 
@@ -283,7 +290,7 @@ function rollDice(dice_type, amount, increase) {
         totalButton.innerText = `Total: ${totalValue}`;
         document.querySelector(".content").appendChild(totalButton);
         const uniqid = Date.now();
-        roll_storyTracker[uniqid] = { button: totalButton };
+        rollTracker[uniqid] = { button: totalButton };
     }
 
     return totalValue;
@@ -299,53 +306,84 @@ function addRoll(type, total, increase, rawRoll) {
     button.innerText = displayText;
     document.querySelector(".content").appendChild(button);
     const uniqid = Date.now();
-    roll_storyTracker[uniqid] = { button: button };
+    rollTracker[uniqid] = { button: button };
 }
 
 function addAction(name, type, dice_type = null) {
     let story = "";
-
-    // Set story based on item name if dice_type is null
-    if (dice_type === null) {
-        switch (name) {
-            case "Skeleton Key":
-                story = "You use a Skeleton Key.";
-                break;
-            case "Ring of Power":
-                story = "You feel a surge of strength.";
-                break;
-            case "Boots of Speed":
-                story = "You dash forward with incredible speed.";
-                break;
-            case "Ancient Map":
-                story = "You found a new area, one map used.";
-                break;
-            case "Adventurer's Pack":
-                story = "You have found some useful supplies.";
-                break;
-            case "Phoenix Feather":
-                story = "1 Phoenix Feather used to revive.";
-                break;
-            default:
-                story = `You used ${name}.`;
-                break;
-        }
-        // Create a button to display the story
-        const button = document.createElement("button");
-        button.classList.add("track");
-        button.innerText = story;
-        document.querySelector(".content").appendChild(button);
-        const uniqid = Date.now();
-        roll_storyTracker[uniqid] = { button: button };
+    // Specific handling for different item types
+    switch (name) {
+        case "Skeleton Key":
+            story = "You use a Skeleton Key.";
+            removeItemFromInventory(name);
+            break;
+        case "Ring of Power":
+            story = "You feel a surge of strength.";
+            break;
+        case "Boots of Speed":
+            story = "You dash forward with incredible speed.";
+            break;
+        case "Ancient Map":
+            story = "You found a new area, one map used.";
+            removeItemFromInventory(name);
+            break;
+        case "Adventurer's Pack":
+            story = "You have found some useful supplies.";
+            removeItemFromInventory(name);
+            break;
+        case "Phoenix Feather":
+            story = "1 Phoenix Feather used to revive.";
+            removeItemFromInventory(name);
+            break;
+        default:
+            story = `You used ${name}.`;
+            // Remove consumable items by default
+            if (type === "consumable") {
+                removeItemFromInventory(name);
+            }
+            break;
     }
+
+    // Create a button to display the story
+    const button = document.createElement("button");
+    button.classList.add("track");
+    button.innerText = story;
+    document.querySelector(".content").appendChild(button);
+    const uniqid = Date.now();
+    rollTracker[uniqid] = { button: button };
+
+    // Update status bar
+    updateStatusBar(name, type);
 
     return story;
 }
 
-function percentage() {
-    // Format to 2 decimal places and update the label
-    document.getElementById('percentage-label').innerText = percentage_increase.toFixed(2) + '%';
+function removeItemFromInventory(itemName) {
+    const inventoryItems = document.querySelectorAll('.inventory-grid .item-slot');
+    for (let item of inventoryItems) {
+        if (item.dataset.itemName === itemName) {
+            // If the item is equipped, remove from equipped slots too
+            const equippedItem = document.querySelector(`.equip-slot .item-slot[data-original-id="${item.dataset.itemId}"]`);
+
+            if (equippedItem) {
+                const parentSlot = equippedItem.closest('.equip-slot');
+                parentSlot.classList.add('empty-slot');
+                parentSlot.innerHTML = '';
+
+                // Add placeholder icon back
+                const placeholder = document.createElement("i");
+                placeholder.className = "fas fa-plus";
+                placeholder.style.opacity = "0.3";
+                parentSlot.appendChild(placeholder);
+            }
+
+            // Remove the item from the inventory grid
+            item.remove();
+            break;
+        }
+    }
 }
+
 
 function generateItem(amount) {
     const inventory = document.querySelector(".inventory-grid");
@@ -607,6 +645,61 @@ function equippedInventoryGenerate(amount) {
     }
 }
 
+function updateStatusBar(itemName, itemType) {
+    const statusBar = document.querySelector('.stats-bar');
+    // Create a status update element
+    const statusUpdate = document.createElement('div');
+    statusUpdate.classList.add('status-update');
+
+    // Customize status message based on item type
+    switch (itemType) {
+        case "consumable":
+            statusUpdate.innerText = `Consumed: ${itemName}`;
+            statusUpdate.style.color = 'orange';
+            break;
+        case "key":
+            statusUpdate.innerText = `Used: ${itemName}`;
+            statusUpdate.style.color = 'green';
+            break;
+        default:
+            statusUpdate.innerText = `Used: ${itemName}`;
+            statusUpdate.style.color = 'blue';
+    }
+
+    // Animate status bar
+    statusBar.style.backgroundColor = 'rgba(117, 121, 231, 0.4)';
+
+    // Add status update to the bar
+    statusBar.appendChild(statusUpdate);
+
+    // Remove the status update after a few seconds
+    setTimeout(() => {
+        statusUpdate.remove();
+        statusBar.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+    }, 3000);
+}
+
+function modifyItemHandler() {
+    const itemSlots = document.querySelectorAll('.item-slot');
+    itemSlots.forEach(slot => {
+        slot.addEventListener("mousedown", function (event) {
+            if (event.button === 2 && this.classList.contains('equipped')) {
+                const itemName = this.dataset.itemName;
+                const itemType = this.dataset.itemType;
+                const itemDice = this.dataset.itemDice;
+
+                // Roll dice if applicable
+                if (itemDice) {
+                    rollDice(itemDice, 1, this.dataset.percentage);
+                }
+
+                // Add action and potentially remove item
+                addAction(itemName, itemType, itemDice);
+            }
+        });
+    });
+}
+
 function setTool(selectedTool) {
     tool = selectedTool;
 }
@@ -623,6 +716,7 @@ function updateCanvasPosition() {
 spinBtn.addEventListener('click', rotateWheel);
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Setup rules, items, etc.
     addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
     addRule('Rule 2', 'No rules can be removed or changed during play.');
     addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
@@ -630,15 +724,25 @@ document.addEventListener('DOMContentLoaded', function () {
     generateItem(10);
     equippedInventoryGenerate(6);
 
+    // Initialize canvas
     canvas = document.getElementById("drawing-canvas");
-    ctx = canvas.getContext("2d");
+    if (!canvas) {
+        console.error("Canvas element not found.");
+        return;
+    }
 
-    // Event listeners
+    ctx = canvas.getContext("2d");
+    if (!ctx) {
+        console.error("Failed to get 2D context.");
+        return;
+    }
+
+    // Add event listeners to canvas
     canvas.addEventListener("mousedown", (e) => {
         isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        lastX = (e.clientX - rect.left) / scale;
-        lastY = (e.clientY - rect.top) / scale;
+        lastX = e.clientX - rect.left;
+        lastY = e.clientY - rect.top;
     });
 
     canvas.addEventListener("mouseup", () => {
@@ -648,8 +752,8 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.addEventListener("mousemove", (e) => {
         if (!isDrawing) return;
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / scale;
-        const y = (e.clientY - rect.top) / scale;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
         ctx.strokeStyle = tool === "pen" ? "white" : "#222";
         ctx.lineWidth = tool === "pen" ? 2 : 20;
@@ -660,105 +764,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        [lastX, lastY] = [x, y];
+        lastX = x;
+        lastY = y;
     });
-
-    function pan(e) {
-        if (!isPanning) return;
-
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-
-        offsetX -= dx / scale;
-        offsetY -= dy / scale;
-
-        updateCanvasPosition();
-
-        lastX = e.clientX;
-        lastY = e.clientY;
-    }
-
-    function stopPan() {
-        isPanning = false;
-    }
-
-    function zoom(e) {
-        e.preventDefault();
-
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        // Convert mouse position to canvas coordinates
-        const canvasX = mouseX / scale + offsetX;
-        const canvasY = mouseY / scale + offsetY;
-
-        // Determine zoom direction
-        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-
-        // Limit zoom level
-        const newScale = Math.min(Math.max(scale * zoomFactor, 0.1), 5);
-
-        if (newScale !== scale) {
-            // Adjust offset to zoom toward mouse position
-            offsetX = canvasX - mouseX / newScale;
-            offsetY = canvasY - mouseY / newScale;
-
-            scale = newScale;
-            updateCanvasPosition();
-
-            // Show zoom level
-            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
-        }
-    }
-
-    function zoomIn() {
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-
-        const rect = canvas.getBoundingClientRect();
-        const canvasX = centerX / scale + offsetX;
-        const canvasY = centerY / scale + offsetY;
-
-        const newScale = Math.min(scale * 1.2, 5);
-
-        if (newScale !== scale) {
-            offsetX = canvasX - centerX / newScale;
-            offsetY = canvasY - centerY / newScale;
-
-            scale = newScale;
-            updateCanvasPosition();
-
-            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
-        }
-    }
-
-    function zoomOut() {
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-
-        const rect = canvas.getBoundingClientRect();
-        const canvasX = centerX / scale + offsetX;
-        const canvasY = centerY / scale + offsetY;
-
-        const newScale = Math.max(scale * 0.8, 0.1);
-
-        if (newScale !== scale) {
-            offsetX = canvasX - centerX / newScale;
-            offsetY = canvasY - centerY / newScale;
-
-            scale = newScale;
-            updateCanvasPosition();
-
-            showStatus(`Zoom: ${Math.round(scale * 100)}%`);
-        }
-    }
-
-    function centerView() {
-        offsetX = canvas.width / 2 - window.innerWidth / 2 / scale;
-        offsetY = canvas.height / 2 - window.innerHeight / 2 / scale;
-        updateCanvasPosition();
-        showStatus('View centered');
-    }
-    canvas.addEventListener("wheel", zoom);
 });
