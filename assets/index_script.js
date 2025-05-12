@@ -197,14 +197,14 @@ function addRule(ruleName, description) {
 }
 
 function clearHistory() {
-    for (const type in rollTracker) {
-        if (rollTracker[type].button) {
-            rollTracker[type].button.remove(); // Remove button from DOM
+    for (const type in rollStoryTracker) {
+        if (rollStoryTracker[type].button) {
+            rollStoryTracker[type].button.remove(); // Remove button from DOM
         }
     }
     // Clear the tracker
-    for (const key in rollTracker) {
-        delete rollTracker[key];
+    for (const key in rollStoryTracker) {
+        delete rollStoryTracker[key];
     }
 }
 
@@ -290,7 +290,7 @@ function rollDice(dice_type, amount, increase) {
         totalButton.innerText = `Total: ${totalValue}`;
         document.querySelector(".content").appendChild(totalButton);
         const uniqid = Date.now();
-        rollTracker[uniqid] = { button: totalButton };
+        rollStoryTracker[uniqid] = { button: totalButton };
     }
 
     return totalValue;
@@ -306,7 +306,7 @@ function addRoll(type, total, increase, rawRoll) {
     button.innerText = displayText;
     document.querySelector(".content").appendChild(button);
     const uniqid = Date.now();
-    rollTracker[uniqid] = { button: button };
+    rollStoryTracker[uniqid] = { button: button };
 }
 
 function addAction(name, type, dice_type = null) {
@@ -319,9 +319,11 @@ function addAction(name, type, dice_type = null) {
             break;
         case "Ring of Power":
             story = "You feel a surge of strength.";
+            removeItemFromInventory(name);
             break;
         case "Boots of Speed":
             story = "You dash forward with incredible speed.";
+            removeItemFromInventory(name);
             break;
         case "Ancient Map":
             story = "You found a new area, one map used.";
@@ -350,7 +352,7 @@ function addAction(name, type, dice_type = null) {
     button.innerText = story;
     document.querySelector(".content").appendChild(button);
     const uniqid = Date.now();
-    rollTracker[uniqid] = { button: button };
+    rollStoryTracker[uniqid] = { button: button };
 
     // Update status bar
     updateStatusBar(name, type);
