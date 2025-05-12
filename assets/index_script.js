@@ -684,7 +684,7 @@ function updateStatusBar(itemName, itemType, amount = null) {
             statusUpdate.style.color = 'green';
             break;
         default:
-            if (amount && amount > 0) {
+            if (amount > 0) {
                 statusUpdate.innerText = `Used: ${itemName}, ${amount} items found`;
             } else {
                 statusUpdate.innerText = `Used: ${itemName}`;
@@ -804,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
-        ctx.strokeStyle = tool === 'pen' ? 'var(--pen-color)' : 'var(--eraser-color)';
+        ctx.strokeStyle = tool === 'pen' ? 'white' : '#222';
         ctx.lineWidth = tool === 'pen' ? 2 : 20;
         ctx.lineCap = 'round';
         ctx.stroke();
@@ -843,7 +843,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
-        ctx.strokeStyle = tool === 'pen' ? 'var(--pen-color)' : 'var(--eraser-color)';
+        ctx.strokeStyle = tool === 'pen' ? 'white' : '#222';
         ctx.lineWidth = tool === 'pen' ? 2 : 20;
         ctx.lineCap = 'round';
         ctx.stroke();
