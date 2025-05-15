@@ -163,19 +163,27 @@ const itemsDatabase = [
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
     document.getElementById(formId).style.display = 'block';
-    notepadStartX = 0;
-    notepadStartY = 0;
-    notepad.style.left = (notepadStartX) + 'px';
-    notepad.style.top = (notepadStartY) + 'px';
+    const badge = document.getElementById("badge");
+    if (formId == "note-pad") {
+        notepadStartX = 0;
+        notepadStartY = 0;
+        badge.style.display = 'block';
+        notepad.style.left = (notepadStartX) + 'px';
+        notepad.style.top = (notepadStartY) + 'px';
+    }
 }
 
 function closeForm(formId) {
     document.getElementById(formId).style.opacity = 0;
     document.getElementById(formId).style.display = 'none';
-    notepadStartX = 0;
-    notepadStartY = 0;
-    notepad.style.left = (notepadStartX) + 'px';
-    notepad.style.top = (notepadStartY) + 'px';
+    const badge = document.getElementById("badge");
+    if (formId == "note-pad") {
+        notepadStartX = 0;
+        notepadStartY = 0;
+        badge.style.display = 'none';
+        notepad.style.left = (notepadStartX) + 'px';
+        notepad.style.top = (notepadStartY) + 'px';
+    }
 }
 
 function wheel_percentage() {

@@ -6,7 +6,7 @@
     --button-gradient: linear-gradient(to right, #606060, #808080);
     --button-hover: linear-gradient(to right, #C0C0C0, #A0A0A0);
     --background-color: #121212;
-    --font-size: 9px;
+    --font-size: 14px;
     --title-size: 50px;
     --popup-color: rgba(51, 51, 51, 0.8);
 }
@@ -261,10 +261,25 @@ body {
     box-sizing: border-box;
 }
 
+.badge {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 105px;
+    background: #d32f2f;
+    color: white;
+    width: 10px;
+    height: 10px;
+    font-size: 12px;
+    border-radius: 50%;
+    font-weight: bold;
+    z-index: 1;
+}
+
 .searchbar button {
     position: relative;
     color: white;
-    left: -20px;
+    left: 0px;
     top: 9px;
     background: black;
     border-radius: 50%;
