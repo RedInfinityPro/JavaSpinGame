@@ -1,27 +1,15 @@
-// DOM Elements
-const wheel = document.getElementById("wheel");
-const spinBtn = document.getElementById("spinBtn");
-const winnerValue = document.getElementById("winnerValue");
-const board = document.querySelector(".board");
 const canvas = document.getElementById('drawing-canvas');
 const ctx = canvas.getContext('2d');
 const notepad = document.getElementById('note-pad');
 const penBtn = document.getElementById('pen-btn');
 const eraserBtn = document.getElementById('eraser-btn');
 const clearBtn = document.getElementById('clear-btn');
-// Variables
-let activePiece = null;
-let isSpinning = false;
-let isDrawing = false;
-let isPanning = false;
-let tool = "pen";
-const ruleTracker = {};
-const rollStoryTracker = {};
-const percentageIncrease = Math.random() * 0.9 + 0.1;
 // Canvas properties
+let tool = "pen";
 let lastX = 0, lastY = 0;
 let scale = 1, offsetX = 0, offsetY = 0;
 let isDragging = false;
+let isDrawing = false;
 let notepadStartX = 0;
 let notepadStartY = 0;
 
@@ -41,29 +29,6 @@ let currentStats = {
     magic: 30,
     xp: 0,
 };
-
-// Values for each segment
-const values = [
-    "Wildcard Trickster",
-    "Apocalyptic Survivor",
-    "Mad Scientist",
-    "Blind Play",
-    "Rags to Riches",
-    "Riches to Rags",
-    "Cursed Wanderer",
-    "Golden Touch"
-];
-
-const values_def = [
-    "Chance at the start of each turn to randomly select a different player to go first",
-    "Chance when collecting resources to receive nothing instead",
-    "Chance for any action to have a completely random outcome",
-    "Chance to hide resource information from all players for one round",
-    "Start with fewer resources but gain 10% bonus on all future acquisitions",
-    "Start with double resources but lose 5% of total after each turn",
-    "Chance of negative events, but they only have half effect",
-    "Chance to double any resource gained, but 5% chance to lose a random resource"
-]
 
 const itemsDatabase = [
     {
@@ -158,8 +123,9 @@ const itemsDatabase = [
         description: "Deals 1d4 damage to enemies but also harms the wielder",
         type: "magic"
     }
-].map(item => ({ ...item, percentage: 0 }));
+].map(item => ({ ...item, percentage: [0, 0] }));
 
+// close/open form
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
     document.getElementById(formId).style.display = 'block';
@@ -186,42 +152,6 @@ function closeForm(formId) {
     }
 }
 
-function wheel_percentage() {
-    // Format to 2 decimal places and update the label
-    document.getElementById('percentage-label').innerText = percentageIncrease.toFixed(2) + '%';
-}
-
-// add content to panel
-function addRule(ruleName, description) {
-    // First-time rule: assign random starting % between 0.1 and 1%
-    if (!ruleTracker[ruleName]) {
-        const button = document.createElement("button");
-        button.classList.add("track");
-        if (ruleName == "Rule 1" || ruleName == "Rule 2" || ruleName == "Rule 3") {
-            button.innerText = `100% change - ${ruleName}`;
-        } else {
-            button.innerText = `${percentageIncrease.toFixed(2)}% chance - ${ruleName}`;
-        }
-
-        button.title = description;
-        document.querySelector(".content").appendChild(button);
-        // Store button and current percentage
-        ruleTracker[ruleName] = {
-            button: button,
-            percentage: percentageIncrease
-        };
-    } else {
-        // Rule exists: increase percentage
-        ruleTracker[ruleName].percentage += percentage_increase; // You can tweak this increment
-
-        const newPercent = ruleTracker[ruleName].percentage;
-
-        // Update text
-        ruleTracker[ruleName].button.innerText = `${newPercent.toFixed(2)}% chance - ${ruleName}`;
-        ruleTracker[ruleName].button.title = description;
-    }
-}
-
 function clearHistory() {
     for (const type in rollStoryTracker) {
         if (rollStoryTracker[type].button) {
@@ -234,162 +164,97 @@ function clearHistory() {
     }
 }
 
-// rotate wheel
-function rotateWheel() {
-    if (isSpinning) return;
-    isSpinning = true;
-    spinBtn.disabled = true;
-    spinBtn.style.opacity = '0.1';
-    winnerValue.classList.remove('show');
-    // Random number of rotations (between 1 and 10)
-    const rotations = 1 + Math.random() * 5;
-    // Random angle for additional rotation (to determine winner)
-    const extraAngle = Math.floor(Math.random() * 360);
-    // Total rotation angle
-    const totalRotation = rotations * 360 + extraAngle;
-    // Apply rotation to the wheel with CSS transition
-    wheel.style.transform = `rotate(${totalRotation}deg)`;
-    // Calculate winner after spin is complete
-    setTimeout(() => {
-        // Calculate which segment is at the top when wheel stops
-        // We need to calculate this based on the final rotation angle
-        // Each segment is 45 degrees (360/8)
-        const finalAngle = (totalRotation % 360);
-        const correctedAngle = (360 - finalAngle + 22.5) % 360;
-        const segmentIndex = Math.floor(correctedAngle / 45) % 8;
-        const winValue = values[segmentIndex];
-        const winDef = values_def[segmentIndex];
-        addRule(winValue, winDef);
-        // Display winner
-        winnerValue.querySelector('span').textContent = winValue;
-        winnerValue.classList.add('show');
-        // Re-enable spin button
-        isSpinning = false;
-        spinBtn.disabled = false;
-        spinBtn.style.opacity = '1';
-    }, 5000); // 5 seconds for the wheel to complete spinning
-}
-
-function search_elements() {
-    let input = document.getElementById('searchbar').value.toLowerCase().trim();
-    let buttons = document.querySelectorAll('.track');
-
-    buttons.forEach(button => {
-        let text = button.innerText.toLowerCase();
-        if (text.includes(input)) {
-            button.style.display = "block";
-        } else {
-            button.style.display = "none";
-        }
-    });
-}
-
-function rollDice(dice_type, amount, increase) {
-    let totalValue = 0;
-    let endvalue = 0;
-    const increase_2 = Number(increase);
-    if (!amount) return;
-
-    switch (dice_type) {
-        case "1d4": endvalue = 4; break;
-        case "1d6": endvalue = 6; break;
-        case "1d8": endvalue = 8; break;
-        case "1d10": endvalue = 10; break;
-        case "1d12": endvalue = 12; break;
-        case "1d20": endvalue = 20; break;
-        case "1d100": endvalue = 100; break;
-        default: return null;
-    }
-
-    // Perform the roll(s)
+function generateItem(amount, except = null) {
+    const inventory = document.querySelector(".inventory-grid");
     for (let i = 0; i < amount; i++) {
-        const rawRoll = Math.floor(1 + Math.random() * endvalue);
-        const rollValue = increase_2 ? rawRoll + increase_2 : rawRoll;
-        totalValue += rollValue;
-        addRoll(dice_type, totalValue, increase_2, rawRoll);
-    }
-
-    // Add the total for multiple dice
-    if (amount > 1) {
-        const totalButton = document.createElement("button");
-        totalButton.classList.add("track", "total");
-        totalButton.innerText = `Total: ${totalValue}`;
-        document.querySelector(".content").appendChild(totalButton);
-        const uniqid = Date.now();
-        rollStoryTracker[uniqid] = { button: totalButton };
-    }
-
-    return totalValue;
-}
-
-function addRoll(type, total, increase, rawRoll) {
-    const button = document.createElement("button");
-    button.classList.add("track");
-    let displayText = `Rolled ${type} → ${rawRoll}`;
-    if (increase) {
-        displayText += ` + ${increase} = ${total}`;
-    }
-    button.innerText = displayText;
-    document.querySelector(".content").appendChild(button);
-    const uniqid = Date.now();
-    rollStoryTracker[uniqid] = { button: button };
-}
-
-function addAction(name, type, dice_type = null) {
-    let story = "";
-    let amount = null;
-    // Specific handling for different item types
-    if (!dice_type) {
-        switch (name) {
-            case "Skeleton Key":
-                story = "You use a Skeleton Key.";
-                removeItemFromInventory(name);
-                break;
-            case "Ring of Power":
-                story = "You feel a surge of strength.";
-                removeItemFromInventory(name);
-                break;
-            case "Boots of Speed":
-                story = "You dash forward with incredible speed.";
-                removeItemFromInventory(name);
-                break;
-            case "Ancient Map":
-                story = "You found a new area, one map used.";
-                removeItemFromInventory(name);
-                break;
-            case "Adventurer's Pack":
-                story = "You have found some useful supplies.";
-                amount = Math.random() * 10 + 1;
-                generateItem(amount, "Adventurer's Pack");
-                removeItemFromInventory(name);
-                break;
-            case "Phoenix Feather":
-                story = "1 Phoenix Feather used to revive.";
-                removeItemFromInventory(name);
-                break;
-            default:
-                story = `You used ${name}.`;
-                // Remove consumable items by default
-                if (type === "consumable") {
-                    removeItemFromInventory(name);
-                }
-                break;
+        // Get a random item from our database
+        let randomItem;
+        do {
+            randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
+        } while (randomItem.name === except);
+        const randomPercentage_bottom = Math.random() * (50 - 1) + 1;
+        const randomPercentage_top = Math.random() * (100 - randomPercentage_bottom) + randomPercentage_bottom;
+        const percentage = [randomPercentage_bottom.toFixed(0), randomPercentage_top.toFixed(0)];
+        // Create item slot
+        const itemSlot = document.createElement("div");
+        itemSlot.className = "item-slot";
+        itemSlot.dataset.itemId = i;
+        itemSlot.dataset.itemName = randomItem.name;
+        itemSlot.dataset.itemType = randomItem.type;
+        itemSlot.dataset.percentage = percentage;
+        itemSlot.title = randomItem.description;
+        // Create icon
+        const icon = document.createElement("i");
+        icon.className = "fas " + randomItem.icon;
+        // Append icon to slot
+        itemSlot.appendChild(icon);
+        // Add dice label if applicable
+        if (randomItem.dice) {
+            itemSlot.dataset.itemDice = randomItem.dice;
+            const label = document.createElement("label");
+            const percentageLabel = document.createElement("p");
+            label.innerText = randomItem.dice;
+            percentageLabel.innerText = `${percentage[0]} - ${percentage[1]}`;
+            itemSlot.appendChild(percentageLabel);
+            itemSlot.appendChild(label);
         }
+        // Store item description
+        itemSlot.dataset.itemDesc = randomItem.description;
+        // Correct mouse handling
+        itemSlot.addEventListener("mousedown", function (event) {
+            event.preventDefault();
+            switch (event.button) {
+                case 0: // Left click
+                    toggleEquip(this);
+                    break;
+                case 1: // Middle click
+                    console.log("Middle click");
+                    break;
+                case 2: // Right click
+                    if (this.classList.contains('equipped')) {
+                        // Calculate percentage bonus properly (ensuring it's a number)
+                        const [minStr, maxStr] = this.dataset.percentage.split(",");
+                        const min = parseInt(minStr, 10);
+                        const max = parseInt(maxStr, 10);
+                        const randomPercentage = Math.floor(Math.random() * (max - min + 1)) + min;
+                        // Only roll dice if this item has dice
+                        if (this.dataset.itemDice) {
+                            rollDice(this.dataset.itemDice, 1, randomPercentage);
+                        }
+                        // Always add the action
+                        addAction(this.dataset.itemName, this.dataset.itemType, this.dataset.itemDice);
+                        // For consumable items without dice, remove after use
+                        if (!this.dataset.itemDice && this.dataset.itemType === "consumable") {
+                            const parentSlot = this.parentElement;
+                            parentSlot.classList.add('empty-slot');
+                            parentSlot.innerHTML = '';
+                            // Add placeholder icon back
+                            const placeholder = document.createElement("i");
+                            placeholder.className = "fas fa-plus";
+                            placeholder.style.opacity = "0.3";
+                            parentSlot.appendChild(placeholder);
+                            // Update original inventory item
+                            const originalId = this.dataset.originalId;
+                            if (originalId) {
+                                const originalItem = document.querySelector(`.inventory-grid .item-slot[data-item-id="${originalId}"]`);
+                                if (originalItem) {
+                                    originalItem.classList.remove('equipped');
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        });
 
-        // Create a button to display the story
-        const button = document.createElement("button");
-        button.classList.add("track");
-        button.innerText = story;
-        document.querySelector(".content").appendChild(button);
-        const uniqid = Date.now();
-        rollStoryTracker[uniqid] = { button: button };
+        // Prevent right-click menu
+        itemSlot.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+        });
+        inventory.appendChild(itemSlot);
     }
-    // Update status bar
-    updateStatusBar(name, type, amount.toFixed(0));
-
-    return story;
 }
-
+// removeItemFromInventory
 function removeItemFromInventory(itemName) {
     const inventoryItems = document.querySelectorAll('.inventory-grid .item-slot');
     for (let item of inventoryItems) {
@@ -413,103 +278,12 @@ function removeItemFromInventory(itemName) {
     }
 }
 
-function generateItem(amount, except = null) {
-    const inventory = document.querySelector(".inventory-grid");
-
-    for (let i = 0; i < amount; i++) {
-        // Get a random item from our database
-        let randomItem;
-        do {
-            randomItem = itemsDatabase[Math.floor(Math.random() * itemsDatabase.length)];
-        } while (randomItem.name === except);
-        const randomPercentage = Math.random() * (100 - 1) + 1;
-
-        // Create item slot
-        const itemSlot = document.createElement("div");
-        itemSlot.className = "item-slot";
-        itemSlot.dataset.itemId = i;
-        itemSlot.dataset.itemName = randomItem.name;
-        itemSlot.dataset.itemType = randomItem.type;
-        itemSlot.dataset.percentage = randomPercentage.toFixed(0);
-        itemSlot.title = randomItem.description;
-
-        // Create icon
-        const icon = document.createElement("i");
-        icon.className = "fas " + randomItem.icon;
-
-        // Append icon to slot
-        itemSlot.appendChild(icon);
-
-        // Add dice label if applicable
-        if (randomItem.dice) {
-            itemSlot.dataset.itemDice = randomItem.dice;
-            const label = document.createElement("label");
-            const percentageLabel = document.createElement("p");
-            label.innerText = randomItem.dice;
-            percentageLabel.innerText = "+" + randomPercentage.toFixed(0);
-            itemSlot.appendChild(percentageLabel);
-            itemSlot.appendChild(label);
-        }
-
-        // Store item description
-        itemSlot.dataset.itemDesc = randomItem.description;
-
-        // Correct mouse handling
-        itemSlot.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-
-            switch (event.button) {
-                case 0: // Left click
-                    toggleEquip(this);
-                    break;
-                case 1: // Middle click
-                    console.log("Middle click");
-                    break;
-                case 2: // Right click
-                    if (this.classList.contains('equipped')) {
-                        // Only roll dice if this item has dice
-                        if (this.dataset.itemDice) {
-                            rollDice(this.dataset.itemDice, 1, this.dataset.percentage);
-                        }
-
-                        // Always add the action
-                        addAction(this.dataset.itemName, this.dataset.itemType, this.dataset.itemDice);
-
-                        // For consumable items without dice, remove after use
-                        if (!this.dataset.itemDice && this.dataset.itemType === "consumable") {
-                            const parentSlot = this.parentElement;
-                            if (parentSlot.classList.contains('equip-slot')) {
-                                parentSlot.classList.add('empty-slot');
-                                parentSlot.innerHTML = '';
-
-                                // Add placeholder icon back
-                                const placeholder = document.createElement("i");
-                                placeholder.className = "fas fa-plus";
-                                placeholder.style.opacity = "0.3";
-                                parentSlot.appendChild(placeholder);
-                            }
-                        }
-                    }
-                    break;
-            }
-        });
-
-        // Prevent right-click menu
-        itemSlot.addEventListener("contextmenu", function (e) {
-            e.preventDefault();
-        });
-
-        inventory.appendChild(itemSlot);
-    }
-}
-
 function toggleEquip(itemElement) {
     // Visual feedback
     itemElement.classList.add('pulse');
     setTimeout(() => {
         itemElement.classList.remove('pulse');
     }, 300);
-
     if (itemElement.classList.contains('equipped')) {
         // Item is equipped, so unequip it
         unequipItem(itemElement);
@@ -528,20 +302,15 @@ function equipItem(itemElement) {
         alert("You have no empty equipment slots!");
         return;
     }
-
     const firstEmptySlot = equippedSlots[0];
-
     // Clone the item
     const clonedItem = itemElement.cloneNode(true);
-
     // Update classes and data attributes
     clonedItem.classList.add('equipped');
     clonedItem.dataset.originalId = itemElement.dataset.itemId;
-
     // Add click handler to unequip
     clonedItem.addEventListener("mousedown", function (event) {
         event.preventDefault();
-
         switch (event.button) {
             case 0: // Left click
                 toggleEquip(this);
@@ -552,29 +321,26 @@ function equipItem(itemElement) {
             case 2: // Right click
                 if (this.classList.contains('equipped')) {
                     // Calculate percentage bonus properly (ensuring it's a number)
-                    const percentageValue = parseFloat(this.dataset.percentage) || 0;
-                    const randomPercentage = Math.random() * percentageValue;
-
+                    const [minStr, maxStr] = this.dataset.percentage.split(",");
+                    const min = parseInt(minStr, 10);
+                    const max = parseInt(maxStr, 10);
+                    const randomPercentage = Math.floor(Math.random() * (max - min + 1)) + min;
                     // Only roll dice if this item has dice
                     if (this.dataset.itemDice) {
-                        rollDice(this.dataset.itemDice, 1, randomPercentage.toFixed(0));
+                        rollDice(this.dataset.itemDice, 1, randomPercentage);
                     }
-
                     // Always add the action
                     addAction(this.dataset.itemName, this.dataset.itemType, this.dataset.itemDice);
-
                     // For consumable items without dice, remove after use
                     if (!this.dataset.itemDice && this.dataset.itemType === "consumable") {
                         const parentSlot = this.parentElement;
                         parentSlot.classList.add('empty-slot');
                         parentSlot.innerHTML = '';
-
                         // Add placeholder icon back
                         const placeholder = document.createElement("i");
                         placeholder.className = "fas fa-plus";
                         placeholder.style.opacity = "0.3";
                         parentSlot.appendChild(placeholder);
-
                         // Update original inventory item
                         const originalId = this.dataset.originalId;
                         if (originalId) {
@@ -591,14 +357,11 @@ function equipItem(itemElement) {
 
     // Remove placeholder icon from slot
     firstEmptySlot.innerHTML = '';
-
     // Add item to equip slot
     firstEmptySlot.appendChild(clonedItem);
     firstEmptySlot.classList.remove('empty-slot');
-
     // Mark original inventory item as equipped
     itemElement.classList.add('equipped');
-
     // Update character stats based on equipped item
     updateCharacterStats();
 }
@@ -610,14 +373,12 @@ function unequipItem(equippedItem) {
         // Mark parent slot as empty
         const parentSlot = equippedItem.parentElement;
         parentSlot.classList.add('empty-slot');
-
         // Add placeholder icon back
         parentSlot.innerHTML = '';
         const placeholder = document.createElement("i");
         placeholder.className = "fas fa-plus";
         placeholder.style.opacity = "0.3";
         parentSlot.appendChild(placeholder);
-
         // Find original inventory item and update its status
         const originalId = equippedItem.dataset.originalId;
         if (originalId) {
@@ -637,11 +398,9 @@ function unequipItem(equippedItem) {
             // Trigger unequip on the equipped version
             toggleEquip(equippedVersion);
         }
-
         // Update inventory item status
         equippedItem.classList.remove('equipped');
     }
-
     // Update character stats
     updateCharacterStats();
 }
@@ -650,7 +409,6 @@ function unequipItem(equippedItem) {
 function updateCharacterStats() {
     // This is where you would calculate and update character stats
     // based on equipped items
-
     // For this demo, we'll just simulate it with a visual feedback
     const statsBar = document.querySelector('.stats-bar');
     statsBar.style.backgroundColor = 'rgba(117, 121, 231, 0.2)';
@@ -680,7 +438,6 @@ function updateStatusBar(itemName, itemType, amount = null) {
     // Create a status update element
     const statusUpdate = document.createElement('div');
     statusUpdate.classList.add('status-update');
-
     // Customize status message based on item type
     switch (itemType) {
         case "consumable":
@@ -692,19 +449,17 @@ function updateStatusBar(itemName, itemType, amount = null) {
             statusUpdate.style.color = 'green';
             break;
         default:
-            if (amount > 0) {
+            if (amount != null && amount > 0) {
                 statusUpdate.innerText = `Used: ${itemName}, ${amount} items found`;
             } else {
                 statusUpdate.innerText = `Used: ${itemName}`;
             }
             statusUpdate.style.color = 'blue';
     }
-
     // Animate status bar
     statusBar.style.backgroundColor = 'rgba(117, 121, 231, 0.4)';
     // Add status update to the bar
     statusBar.appendChild(statusUpdate);
-
     // Remove the status update after a few seconds
     setTimeout(() => {
         statusUpdate.remove();
@@ -720,12 +475,10 @@ function modifyItemHandler() {
                 const itemName = this.dataset.itemName;
                 const itemType = this.dataset.itemType;
                 const itemDice = this.dataset.itemDice;
-
                 // Roll dice if applicable
                 if (itemDice) {
                     rollDice(itemDice, 1, this.dataset.percentage);
                 }
-
                 // Add action and potentially remove item
                 addAction(itemName, itemType, itemDice);
             }
@@ -758,8 +511,6 @@ function keepInBounds() {
 function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
-spinBtn.addEventListener('click', rotateWheel);
 
 document.addEventListener('DOMContentLoaded', function () {
     notepad.addEventListener('mousedown', (e) => {
@@ -896,18 +647,13 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('touchend', () => {
         isDragging = false;
     });
-
     // Button event listeners
     penBtn.addEventListener('click', () => setTool('pen'));
     eraserBtn.addEventListener('click', () => setTool('eraser'));
     clearBtn.addEventListener('click', clearCanvas);
     // Initially position the notepad
     keepInBounds();
-    // Setup rules, items, etc.
-    addRule('Rule 1', 'Every time the wheel spins, a new rule must be added.');
-    addRule('Rule 2', 'No rules can be removed or changed during play.');
-    addRule('Rule 3', 'Rules can stack over time, thus changing the chance of that rule being applied.');
-    wheel_percentage();
+    // items, etc.
     generateItem(12);
     equippedInventoryGenerate(6);
 });

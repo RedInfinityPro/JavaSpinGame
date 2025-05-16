@@ -1,4 +1,4 @@
-## WORK LIST
+## Work on List
 
 * Need to add a popup for each rule for a visual guide.
 
@@ -12,13 +12,7 @@
 
 * Add a clear indication of rule, roll, and story buttons.
 
-* Show a notification above the notepad button to indicate if it's open or not.
-
-* Change the bonus to be a range instead of a '+number.'
-
-## BUGS
-
-* Only clicking on the equipped area allows for random bonuses; we need to fix that and keep the limitation in check.
+## Bugs
 
 * When a repeat of an object is near a removed item, it automatically equips the second one; we need to fix that.
 
@@ -31,5 +25,3 @@
 * Update multiple status bars; only show notifications on one status bar.
 
 * Either allow every main panel (wheel, side panel, player inventory, notepad) to overlap or close popups automatically.
-
-* Change the randomize function for (role, bonus percentage) to have true random.

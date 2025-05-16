@@ -7,107 +7,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="assets\css\index_style.css">
+    <link rel="icon" type="image/x-icon" href="assets\images\R-logo.png">
+    <script src="https://kit.fontawesome.com/YOUR-KIT-ID.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/windows.css">
 </head>
 
 <body>
-    <div class="spinWheel-box" id="spinWheel">
-        <span class="close-btn" id="close-btn" onclick="closeForm('spinWheel')">&times;</span>
-        <label class="wheel-name" title="Per spin, you add a new rule">Rules Spin Wheel</label>
-        <div class="wheel-container">
-            <div class="wheel-pointer"></div>
-            <div id="wheel" class="wheel">
-                <label id="percentage-label"
-                    title="Rules can stack over time, thus changing the chance of that rule being applied"></label>
-                <div class="segment" style="--i:0; --clr:#FFD700;"
-                    title="Chance at the start of each turn to randomly select a different player to go first">
-                    <span>Wildcard Trickster</span>
+    <header id="header">
+        <nav class="navbar">
+            <span class="close-btn" id="close-btn" onclick="closeHeader()">&times;</span>
+            <div class="logo">
+                <img type="image" src="assets\images\R-logo.png" alt="RedInfinity Logo">
+                <h1>RedInfinity<span class="pro">Pro</span></h1>
+            </div>
+            <div class="nav-bar">
+                <button class="fab fa-github"
+                    onclick="window.location.href='https://github.com/RedInfinityPro?tab=repositories&q=&type=&language=&sort=';"></button>
+                <button class="fab fa-stack-overflow"
+                    onclick="window.location.href='https://stackoverflow.com/';"></button>
+            </div>
+            <p style="color: red; padding-top: 20px;">Optional: Log in to save/load your game.</p>
+            <form class="login-container" id="login-container">
+                <h1>Login</h1>
+                <div class="line">
+                    <button onclick="login()">Login</button>
+                    <button onclick="create()">Create</button>
                 </div>
-                <div class="segment" style="--i:1; --clr:#696969;"
-                    title="Chance when collecting resources to receive nothing instead"><span>Apocalyptic
-                        Survivor</span></div>
-                <div class="segment" style="--i:2; --clr:#8A2BE2;"
-                    title="Chance for any action to have a completely random outcome"><span>Mad Scientist</span></div>
-                <div class="segment" style="--i:3; --clr:#3498db;"
-                    title="Chance to hide resource information from all players for one round"><span>Blind Play</span>
+            </form>
+        </nav>
+    </header>
+
+    <main>
+        <!-- windows -->
+        <div class="popup-form" id="player-inventory">
+            <div class="form-container">
+                <span class="close-btn" id="close-btn" onclick="closeForm('player-inventory')">&times;</span>
+                <h2><i class="fa fa-user"></i> Player Inventory</h2>
+                <div class="stats-bar" id="user-basic">
+                    <span><i class="fas fa-arrow-up" id="level"></i> Level: 1</span>
+                    <span><i class="fas fa-circle" id="xp"></i> xp: 0</span>
+                    <span><i class="fas fa-running" id="speed"></i> Speed: 30ft</span>
+                    <span><i class="fas fa-coins" id="gold"></i> Gold: 0</span>
                 </div>
-                <div class="segment" style="--i:4; --clr:#DAA520;"
-                    title="Start with fewer resources but gain 10% bonus on all future acquisitions"><span>Rags to
-                        Riches</span></div>
-                <div class="segment" style="--i:5; --clr:#8E2818;"
-                    title="Start with double resources but lose 5% of total after each turn"><span>Riches to Rags</span>
+
+                <div class="stats-bar" id="user-advanced">
+                    <span><i class="fas fa-heart" id="health"></i> HP: 40/40</span>
+                    <span><i class="fas fa-shield-alt" id="armor"></i> Armor: 15</span>
+                    <span><i class="fas fa-gavel" id="attack"></i> Attack: 15</span>
+                    <span><i class="fas fa-magic" id="magic"></i> Magic: 30</span>
                 </div>
-                <div class="segment" style="--i:6; --clr:#328CAA;"
-                    title="Chance of negative events, but they only have half effect"><span>Cursed Wanderer</span></div>
-                <div class="segment" style="--i:7; --clr:#8A5887;"
-                    title="Chance to double any resource gained, but 5% chance to lose a random resource"><span>Golden
-                        Touch</span></div>
-            </div>
-        </div>
-        <div id="winnerValue" class="winner-value" aria-live="polite"><span>0</span></div>
-        <button class="spin" id="spinBtn">SPIN</button>
-    </div>
 
-    <div class="side-panel">
-        <div class="content">
-        </div>
-    </div>
+                <h3>Equipped Weapons</h3>
+                <div class="equip-inventory" id="equippedSlot" oncontextmenu="return false;">
 
-    <div class="searchbar">
-        <input id="searchbar" onkeyup="search_elements()" type="text" name="search" placeholder="Search...">
-        <span class="badge" id="badge"> </span>
-        <button class="fa fa-user" title="player invintory" onclick="showForm('player-inventory')"></button>
-        <button class="fa fa-store" title="store" onclick="showForm('store-inventory')"></button>
-        <button class="fa fa-file" title="note pad" onclick="showForm('note-pad')"></button>
-        <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
-        <button class="fa fa-gear" title="settings" onclick="showForm('settings')"></button>
-    </div>
+                </div>
+                <br></br>
+                <h3>Inventory</h3>
+                <div class="scroll-container">
+                    <div class="inventory-grid" id="inventoryGrid" oncontextmenu="return false;">
 
-    <div class="popup-form" id="player-inventory" style="z-index: 200;">
-        <div class="form-container">
-            <span class="close-btn" id="close-btn" onclick="closeForm('player-inventory')">&times;</span>
-            <h2><i class="fa fa-user"></i> Player Inventory</h2>
-            <div class="stats-bar" id="user-basic">
-                <span><i class="fas fa-arrow-up" id="level"></i> Level: 1</span>
-                <span><i class="fas fa-circle" id="xp"></i> xp: 0</span>
-                <span><i class="fas fa-running" id="speed"></i> Speed: 30ft</span>
-                <span><i class="fas fa-coins" id="gold"></i> Gold: 0</span>
-            </div>
-
-            <div class="stats-bar" id="user-advanced">
-                <span><i class="fas fa-heart" id="health"></i> HP: 40/40</span>
-                <span><i class="fas fa-shield-alt" id="armor"></i> Armor: 15</span>
-                <span><i class="fas fa-gavel" id="attack"></i> Attack: 15</span>
-                <span><i class="fas fa-magic" id="magic"></i> Magic: 30</span>
-            </div>
-
-            <h3>Equipped Weapons</h3>
-            <div class="equip-inventory" id="equippedSlot" oncontextmenu="return false;">
-
-            </div>
-            <br></br>
-            <h3>Inventory</h3>
-            <div class="scroll-container">
-                <div class="inventory-grid" id="inventoryGrid" oncontextmenu="return false;">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="popup-form" id="note-pad" style="width: 309px; height: 385px;">
-        <div class="form-container">
-            <h2 style="cursor: move;"><i class="fa fa-file"></i> Note Pad</h2>
-            <span class="close-btn" id="close-btn" onclick="closeForm('note-pad')">&times;</span>
-            <canvas id="drawing-canvas" class="drawing-canvas" width="305" height="305"></canvas>
-            <div class="toolbar">
-                <button id="pen-btn">Pen</button>
-                <button id="eraser-btn">Eraser</button>
-                <button id="clear-btn">Clear</button>
+        <div class="popup-form" id="note-pad" style="width: 309px; height: 385px;">
+            <div class="form-container">
+                <h2 style="cursor: move;"><i class="fa fa-file"></i> Note Pad</h2>
+                <span class="close-btn" id="close-btn" onclick="closeForm('note-pad')">&times;</span>
+                <canvas id="drawing-canvas" class="drawing-canvas" width="305" height="305"></canvas>
+                <div class="toolbar">
+                    <button id="pen-btn">Pen</button>
+                    <button id="eraser-btn">Eraser</button>
+                    <button id="clear-btn">Clear</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script src="assets\javascript\index_script.js"></script>
+        <!-- side panel -->
+        <div class="side-panel">
+            <div class="content" id="content">
+            </div>
+        </div>
+
+        <div class="searchbar">
+            <input id="searchbar" onkeyup="search_elements()" type="text" name="search" placeholder="Search...">
+            <span class="badge" id="badge"> </span>
+            <button class="fa fa-user" title="player invintory" onclick="showForm('player-inventory')"></button>
+            <button class="fa fa-store" title="store" onclick="showForm('store-inventory')"></button>
+            <button class="fa fa-file" title="note pad" onclick="showForm('note-pad')"></button>
+            <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
+            <button class="fa fa-gear" title="settings" onclick="showForm('settings')"></button>
+        </div>
+    </main>
+
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/windows.js"></script>
 </body>
 
 </html>

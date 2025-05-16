@@ -1,0 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    --font-family: 'Poppins', Arial, sans-serif;
+    --font-size: 16px;
+    --title-size: 24px;
+
+    /* colors */
+    --background-color: #121212;
+    --text-color: white;
+    --logo-primary-color: red;
+    --logo-secondary-color: silver;
+    --sidePanel-color: rgba(51, 51, 51, 0.8);
+    --button-gradient: linear-gradient(to right, #606060, #808080);
+    --button-hover: linear-gradient(to right, #C0C0C0, #A0A0A0);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+}
+
+html,
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--background-color);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    color: var(--text-color);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 1000;
+}
+
+.close-btn:hover {
+    color: red;
+    transform: scale(1.5);
+}
+
+/* logo */
+header {
+    position: fixed;
+    top: 10px;
+    width: 90%;
+    padding: 20px;
+    border-radius: 25px;
+    border: 2px solid white;
+    z-index: 1000;
+    background: rgba(40, 40, 40, 1);
+    user-select: none;
+}
+
+.nav-bar button {
+    position: relative;
+    color: white;
+    left: 0px;
+    top: 9px;
+    background: black;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    border: 2px solid black;
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.9);
+    transition: all 0.1s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.nav-bar button:hover {
+    background: darkgray;
+    transform: scale(1.2);
+}
+
+.login-container {
+    padding: 20px;
+    width: 300px;
+    text-align: left;
+    align-items: left;
+    justify-content: space-between;
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-container label {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.login-container input {
+    margin-top: 5%;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.login-container button {
+    position: relative;
+    top: 10px;
+    background: var(--button-gradient);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.login-container button:hover {
+    background: var(--button-hover);
+    transform: scale(1.1);
+}
+
+.line {
+    display: grid;
+    grid-template-columns: repeat(2, 90px);
+    grid-gap: 10px;
+    padding-bottom: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.logo h1 {
+    font-size: var(--title-size);
+    color: var(--logo-primary-color);
+}
+
+.logo .pro {
+    color: var(--logo-secondary-color);
+    font-weight: 700;
+}
+
+/* side panel */
+.side-panel {
+    position: fixed;
+    right: 0;
+    top: 1%;
+    background: var(--sidePanel-color);
+    border-radius: 20px;
+    width: 200px;
+    height: 85%;
+    max-width: 600px;
+    backdrop-filter: blur(8px);
+    border: 2px solid white;
+    overflow-y: auto;
+}
+
+.content {
+    justify-content: space-between;
+    padding: 5%;
+}
+
+.track {
+    background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: var(--font-family);
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+    text-align: left;
+    border: 1px solid white;
+    transition: all 0.1s ease;
+}
+
+.track:hover {
+    transform: scale(0.9);
+    background: linear-gradient(145deg, #2d2d2d, gray);
+}
+
+.searchbar {
+    position: fixed;
+    background: var(--sidePanel-color);
+    right: 0;
+    bottom: 1px;
+    width: 200px;
+    height: 90px;
+    border: 2px solid white;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
+    user-select: none;
+}
+
+.searchbar input {
+    margin-top: 5%;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.badge {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 105px;
+    background: #d32f2f;
+    color: white;
+    width: 10px;
+    height: 10px;
+    font-size: 12px;
+    border-radius: 50%;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.searchbar button {
+    position: relative;
+    color: white;
+    left: 0px;
+    top: 9px;
+    background: black;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    padding: 2.5%;
+    border: 2px solid black;
+    transition: all 0.1s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.searchbar button:hover {
+    background: darkgray;
+    transform: scale(1.2);
+}
