@@ -121,6 +121,7 @@ header {
     letter-spacing: 0.5px;
     font-size: 14px;
     padding-top: 20px;
+    margin-left: 5%;
 }
 
 .login-container input {
@@ -163,9 +164,9 @@ header {
 
 .line {
     display: grid;
-    grid-template-columns: repeat(2, 90px);
-    grid-gap: 10px;
-    padding-bottom: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: var(--spacing-md);
+    padding-bottom: var(--spacing-lg);
 }
 
 .logo {
@@ -174,25 +175,30 @@ header {
 }
 
 .logo img {
-    width: 40px;
-    height: 40px;
-    margin-right: 10px;
+    width: 45px;
+    height: 45px;
+    margin-right: var(--spacing-md);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .logo h1 {
     font-size: var(--title-size);
     color: var(--logo-primary-color);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .logo .pro {
     color: var(--logo-secondary-color);
     font-weight: 700;
+    position: relative;
 }
 
 /* side panel */
 .side-panel {
     position: fixed;
-    right: 0;
+    right: 0%;
     top: 1%;
     background: var(--sidePanel-color);
     border-radius: 20px;
@@ -205,10 +211,27 @@ header {
 }
 
 .content {
-    justify-content: space-between;
-    padding: 5%;
+    flex: 1;
+    padding: 9px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--logo-primary-color) transparent;
 }
 
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background-color: var(--logo-primary-color);
+    border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* track */
 .track {
     background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
     color: #ffffff;
@@ -232,7 +255,7 @@ header {
 .searchbar {
     position: fixed;
     background: var(--sidePanel-color);
-    right: 0;
+    right: 0%;
     bottom: 1px;
     width: 200px;
     height: 90px;
@@ -246,10 +269,18 @@ header {
 
 .searchbar input {
     position: relative;
-    margin-top: 5%;
-    padding: 5px;
-    border-radius: 5px;
-    box-sizing: border-box;
+    flex: 1;
+    padding: 15px var(--spacing-md);
+    border-radius: 8px;
+    background: var(--input-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    font-size: 14px;
+    transition: var(--transition);
+    scale: 0.6;
+    right: 23%;
+    top: -5%;
+    font-size: large;
 }
 
 .badge {
@@ -271,7 +302,7 @@ header {
     position: relative;
     color: white;
     left: 0px;
-    top: 9px;
+    top: -5px;
     background: black;
     border-radius: 50%;
     width: 30px;

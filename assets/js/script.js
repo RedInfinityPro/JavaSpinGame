@@ -61,7 +61,7 @@ function login() {
     // Forgot Password link
     const forgotLink = document.createElement("a");
     forgotLink.href = "#";
-    forgotLink.textContent = "Forgot Password?";
+    forgotLink.textContent = " Forgot Password?";
     forgotLink.style.color = "lightblue";
     forgotLink.setAttribute("aria-label", "Forgot Password");
     container.appendChild(forgotLink);

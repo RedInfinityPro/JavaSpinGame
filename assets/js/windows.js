@@ -497,8 +497,8 @@ function setTool(selectedTool) {
 
 function keepInBounds() {
     const rect = notepad.getBoundingClientRect();
-    const maxLeft = window.innerWidth - rect.width;
-    const maxTop = window.innerHeight - rect.height;
+    const maxLeft = window.innerWidth;
+    const maxTop = window.innerHeight;
     let left = parseInt(notepad.style.left);
     let top = parseInt(notepad.style.top);
     left = Math.min(left, maxLeft);
@@ -551,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
@@ -558,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.lineWidth = tool === 'pen' ? 2 : 20;
         ctx.lineCap = 'round';
         ctx.stroke();
+
         lastX = x;
         lastY = y;
     });

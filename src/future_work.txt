@@ -25,3 +25,5 @@
 * Update multiple status bars; only show notifications on one status bar.
 
 * Either allow every main panel (wheel, side panel, player inventory, notepad) to overlap or close popups automatically.
+
+* Fix the pen to move with the mouse better.
