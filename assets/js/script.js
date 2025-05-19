@@ -91,6 +91,19 @@ function create() {
     usernameInput.required = true;
     usernameInput.setAttribute("aria-label", "Username");
     container.appendChild(usernameInput);
+    // email
+    const emailLabel = document.createElement("label");
+    emailLabel.htmlFor = "email";
+    emailLabel.textContent = "Email";
+    container.appendChild(emailLabel);
+    const emailInput = document.createElement("input");
+    emailInput.type = "text";
+    emailInput.id = "email";
+    emailInput.name = "email";
+    emailInput.placeholder = "Enter your email";
+    emailInput.required = true;
+    emailInput.setAttribute("aria-label", "Email");
+    container.appendChild(emailInput);
     // password
     const passwordLabel = document.createElement("label");
     passwordLabel.htmlFor = "password";
