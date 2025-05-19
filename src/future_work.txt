@@ -25,3 +25,5 @@
 * Either allow every main panel (wheel, side panel, player inventory, notepad) to overlap or close popups automatically.
 
 * Fix the pen to move with the mouse better.
+
+* Allow items to upate the status bar when used.

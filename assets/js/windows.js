@@ -23,11 +23,33 @@ const BASE_STATS = {
     xp: 0,
 };
 let currentStats = {
-    health: 40,
+    health: 20,
     magic: 30,
     xp: 0,
 };
+const powers = ["Healing", "Death", "Fire", "Strangth"];
 const itemsDatabase = [
+    {
+        icon: "fa-scroll",
+        name: "Scroll of Magic",
+        dice: "1d6",
+        description: "Scroll of ",
+        type: "consumable"
+    },
+    {
+        icon: "fa-fire",
+        name: "Wand of Fireballs",
+        dice: "1d6",
+        description: "Shoots devastating fireballs that explode on impact",
+        type: "magic"
+    },
+    {
+        icon: "fa-bolt",
+        name: "Lightning Rod",
+        dice: "1d10",
+        description: "Channels electricity to strike multiple foes",
+        type: "magic"
+    },
     {
         icon: "fa-gavel",
         name: "Warhammer",
@@ -119,9 +141,10 @@ const itemsDatabase = [
         dice: "1d4",
         description: "Deals 1d4 damage to enemies but also harms the wielder",
         type: "magic"
-    }
+    },
 ].map(item => ({ ...item, percentage: [0, 0], cost: 0 }));
 const shownNotifications = new Map();
+
 // close/open form
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
@@ -181,7 +204,11 @@ function generateItem(amount, except = null) {
         itemSlot.dataset.itemType = randomItem.type;
         itemSlot.dataset.percentage = percentage;
         itemSlot.dataset.cost = cost.toFixed(2);
-        itemSlot.title = randomItem.description;
+        if (randomItem.description == "Scroll of ") {
+            itemSlot.title = randomItem.description + powers[Math.floor(Math.random() * powers.length)];
+        } else {
+            itemSlot.title = randomItem.description;
+        }
         // Create icon
         const icon = document.createElement("i");
         icon.className = "fas " + randomItem.icon;
@@ -258,6 +285,7 @@ function generateItem(amount, except = null) {
         inventory.appendChild(itemSlot);
     }
 }
+
 // removeItemFromInventory
 function removeItemFromInventory(itemName) {
     const inventoryItems = document.querySelectorAll('.inventory-grid .item-slot');
@@ -540,6 +568,18 @@ function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
+// Improved drawing function for smoother lines
+function drawLine(x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = tool === 'pen' ? 'white' : '#222';
+    ctx.lineWidth = tool === 'pen' ? 2 : 20;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round'; // Add round line joins for smoother corners
+    ctx.stroke();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     notepad.addEventListener('mousedown', (e) => {
         if (!e.target.closest('h2')) return;
@@ -567,7 +607,7 @@ document.addEventListener('DOMContentLoaded', function () {
         isDragging = false;
     });
 
-    // Drawing functionality
+    // Improved drawing functionality with better mouse tracking
     canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         lastX = e.clientX - rect.left;
@@ -578,19 +618,31 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.addEventListener('mousemove', (e) => {
         if (!isDrawing) return;
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = tool === 'pen' ? 'white' : '#222';
-        ctx.lineWidth = tool === 'pen' ? 2 : 20;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-
-        lastX = x;
-        lastY = y;
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+        // Calculate distance between points
+        const distance = Math.sqrt(Math.pow(currentX - lastX, 2) + Math.pow(currentY - lastY, 2));
+        // If distance is too large, create intermediate points for smoother line
+        if (distance > 5) {
+            const steps = Math.ceil(distance / 2); // Adjust divisor for desired smoothness
+            const deltaX = (currentX - lastX) / steps;
+            const deltaY = (currentY - lastY) / steps;
+            for (let i = 1; i <= steps; i++) {
+                const stepX = lastX + deltaX * i;
+                const stepY = lastY + deltaY * i;
+                if (i === 1) {
+                    drawLine(lastX, lastY, stepX, stepY);
+                } else {
+                    const prevX = lastX + deltaX * (i - 1);
+                    const prevY = lastY + deltaY * (i - 1);
+                    drawLine(prevX, prevY, stepX, stepY);
+                }
+            }
+        } else {
+            drawLine(lastX, lastY, currentX, currentY);
+        }
+        lastX = currentX;
+        lastY = currentY;
     });
 
     canvas.addEventListener('mouseup', () => {

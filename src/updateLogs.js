@@ -15,7 +15,8 @@ const updateLogs = [
     { version: "0.1.3", notes: "Better login screen." },
     { version: "0.1.4", notes: "Removing the settings window for now, updating canvas, and inventory items." },
     { version: "0.1.5", notes: "Updating user status bars." },
-    { version: "0.1.6", notes: "Adding a update screen to settings screen." }
+    { version: "0.1.6", notes: "Adding a update screen to settings screen." },
+    { version: "0.1.7", notes: "Adding more items to the game." }
 ];
 
 function populateUpdateButtons() {
