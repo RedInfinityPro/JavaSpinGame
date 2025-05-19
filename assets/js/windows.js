@@ -121,7 +121,7 @@ const itemsDatabase = [
         type: "magic"
     }
 ].map(item => ({ ...item, percentage: [0, 0], cost: 0 }));
-
+const shownNotifications = new Map();
 // close/open form
 function showForm(formId) {
     document.getElementById(formId).style.opacity = 1;
@@ -409,14 +409,21 @@ function unequipItem(equippedItem) {
 
 // Update character stats based on equipped items
 function updateCharacterStats() {
-    // This is where you would calculate and update character stats
-    // based on equipped items
-    // For this demo, we'll just simulate it with a visual feedback
-    const statsBar = document.querySelector('.stats-bar');
-    statsBar.style.backgroundColor = 'rgba(117, 121, 231, 0.2)';
-    setTimeout(() => {
-        statsBar.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-    }, 300);
+    // Reset to base stats or use your own logic here
+    playerStats.health = 40;
+    playerStats.maxHealth = 40;
+    playerStats.armor = 15;
+    playerStats.attack = 15;
+    playerStats.magic = 30;
+    const equippedItems = document.querySelectorAll('.equip-slot .item-slot');
+    equippedItems.forEach(item => {
+        const type = item.dataset.itemType;
+        // Modify stats based on type or a custom attribute
+        if (type === 'weapon') playerStats.attack += 5;
+        if (type === 'armor') playerStats.armor += 3;
+        if (type === 'magic') playerStats.magic += 10;
+    });
+    renderStatusBars();
 }
 
 function equippedInventoryGenerate(amount) {
@@ -435,12 +442,31 @@ function equippedInventoryGenerate(amount) {
     }
 }
 
+function renderStatusBars() {
+    document.querySelector('#level').parentElement.innerHTML = `<i class="fas fa-arrow-up" id="level"></i> Level: ${BASE_STATS.level}`;
+    document.querySelector('#xp').parentElement.innerHTML = `<i class="fas fa-circle" id="xp"></i> XP: ${BASE_STATS.xp}`;
+    document.querySelector('#speed').parentElement.innerHTML = `<i class="fas fa-running" id="speed"></i> Speed: ${BASE_STATS.speed}`;
+    document.querySelector('#gold').parentElement.innerHTML = `<i class="fas fa-coins" id="gold"></i> Gold: ${BASE_STATS.gold}`;
+    document.querySelector('#health').parentElement.innerHTML = `<i class="fas fa-heart" id="health"></i> HP: ${currentStats.health}/${BASE_STATS.health}`;
+    document.querySelector('#armor').parentElement.innerHTML = `<i class="fas fa-shield-alt" id="armor"></i> Armor: ${BASE_STATS.armor}`;
+    document.querySelector('#attack').parentElement.innerHTML = `<i class="fas fa-gavel" id="attack"></i> Attack: ${BASE_STATS.attack}`;
+    document.querySelector('#magic').parentElement.innerHTML = `<i class="fas fa-magic" id="magic"></i> Magic: ${currentStats.magic}/${BASE_STATS.magic}`;
+}
+
 function updateStatusBar(itemName, itemType, amount = null) {
-    const statusBar = document.querySelector('.stats-bar');
-    // Create a status update element
+    const targetStatusBar = document.getElementById('user-basic'); // Pick one bar for updates
+    if (!targetStatusBar) return;
+    // Remove existing notification for this item if it exists
+    if (shownNotifications.has(itemName)) {
+        const oldNotification = shownNotifications.get(itemName);
+        if (oldNotification && oldNotification.parentElement) {
+            oldNotification.parentElement.removeChild(oldNotification);
+        }
+    }
+    // Create a new status update element
     const statusUpdate = document.createElement('div');
     statusUpdate.classList.add('status-update');
-    // Customize status message based on item type
+    // Customize status message and color
     switch (itemType) {
         case "consumable":
             statusUpdate.innerText = `Consumed: ${itemName}`;
@@ -451,22 +477,25 @@ function updateStatusBar(itemName, itemType, amount = null) {
             statusUpdate.style.color = 'green';
             break;
         default:
-            if (amount != null && amount > 0) {
-                statusUpdate.innerText = `Used: ${itemName}, ${amount} items found`;
-            } else {
-                statusUpdate.innerText = `Used: ${itemName}`;
-            }
+            statusUpdate.innerText = amount != null && amount > 0
+                ? `Used: ${itemName}, ${amount} items found`
+                : `Used: ${itemName}`;
             statusUpdate.style.color = 'blue';
     }
-    // Animate status bar
-    statusBar.style.backgroundColor = 'rgba(117, 121, 231, 0.4)';
-    // Add status update to the bar
-    statusBar.appendChild(statusUpdate);
-    // Remove the status update after a few seconds
+    // Visual style
+    statusUpdate.style.marginTop = '5px';
+    statusUpdate.style.fontSize = '12px';
+    statusUpdate.style.opacity = '0.9';
+    // Append to the selected status bar
+    targetStatusBar.appendChild(statusUpdate);
+    shownNotifications.set(itemName, statusUpdate);
+    // Optional: fade out after 5 seconds
     setTimeout(() => {
-        statusUpdate.remove();
-        statusBar.style.backgroundColor = 'transparent';
-    }, 3000);
+        if (statusUpdate && statusUpdate.parentElement) {
+            statusUpdate.parentElement.removeChild(statusUpdate);
+            shownNotifications.delete(itemName);
+        }
+    }, 5000);
 }
 
 function modifyItemHandler() {
@@ -640,4 +669,5 @@ document.addEventListener('DOMContentLoaded', function () {
     // items, etc.
     generateItem(12);
     equippedInventoryGenerate(6);
+    renderStatusBars();
 });

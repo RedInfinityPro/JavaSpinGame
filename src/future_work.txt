@@ -16,13 +16,7 @@
 
 * When a repeat of an object is near a removed item, it automatically equips the second one; we need to fix that.
 
-* Don't allow multiple notifications for used items; just show the newest ones.
-
-* Need to fix the status bar to keep updated values instead of holding values in HTML.
-
 * Allow items to show notifications for all items.
-
-* Update multiple status bars; only show notifications on one status bar.
 
 * Either allow every main panel (wheel, side panel, player inventory, notepad) to overlap or close popups automatically.
 
