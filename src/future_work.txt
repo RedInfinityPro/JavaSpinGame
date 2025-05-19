@@ -12,6 +12,10 @@
 
 * Add a clear indication of rule, roll, and story buttons.
 
+* Allow settings to create an upades sheet.
+
+* Fix the toggle swich in the settings screen.
+
 ## Bugs
 
 * When a repeat of an object is near a removed item, it automatically equips the second one; we need to fix that.

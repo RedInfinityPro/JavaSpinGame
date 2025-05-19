@@ -83,25 +83,44 @@
                 </div>
             </div>
         </div>
+        <!-- Settings -->
+        <div class="popup-form" id="settings">
+            <div class="form-container">
+                <span class="close-btn" id="close-btn" onclick="closeForm('settings')">&times;</span>
+                <h2><i class="fa fa-gear"></i> Settings</h2>
+                <h3>Basic Settings</h3>
+                <form class="scroll-container-settings">
+                    <label htmlFor="username">Toggle Style:</label>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                </form>
+                <h3>Updates</h3>
+                <form class="scroll-container-settings" id="update-buttons-container">
+                    
+                </form>
+            </div>
+        </div>
         <!-- side panel -->
         <div class="side-panel">
             <div class="content" id="content">
             </div>
         </div>
-
         <div class="searchbar">
             <input id="searchbar" onkeyup="search_elements()" type="text" name="search" placeholder="Search...">
             <span class="badge" id="badge"> </span>
             <button class="fa fa-user" title="player invintory" onclick="showForm('player-inventory')"></button>
             <button class="fa fa-store" title="store" onclick="showForm('store-inventory')"></button>
             <button class="fa fa-file" title="note pad" onclick="showForm('note-pad')"></button>
-            <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
             <button class="fa fa-gear" title="settings" onclick="showForm('settings')"></button>
+            <button class="fa fa-trash" title="clear history" onclick="clearHistory()"></button>
         </div>
     </main>
 
     <script src="assets/js/script.js"></script>
     <script src="assets/js/windows.js"></script>
+    <script src="src\updateLogs.js"></script>
 </body>
 
 </html>
