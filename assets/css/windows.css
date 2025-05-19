@@ -43,6 +43,54 @@
     user-select: none;
 }
 
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.settings-select {
+    position: relative;
+    width: 40%;
+    height: 100%;
+    background: var(--popup-color, #292929);
+    border: 2px solid white;
+    border-radius: 8px;
+    display: grid;
+    gap: 5px;
+    justify-content: flex-start;
+    align-items: left;
+}
+
+.settings-button {
+    background: transparent;
+    border: 2px solid transparent;
+    color: white;
+    width: 150%;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 5px;
+    text-align: center;
+}
+
+.settings-button:hover {
+    color: white;
+    font-weight: bold;
+    font-size: large;
+}
+
+.settings-display {
+    position: relative;
+    width: 60%;
+    left: 9rem;
+    bottom: 135px;
+    background: var(--popup-color, #292929);
+    border: 2px solid white;
+    border-radius: 8px;
+    min-height: 400px;
+}
+
 .stats-bar {
     display: flex;
     justify-content: space-between;
@@ -84,7 +132,7 @@
     overflow: hidden;
 }
 
-.item-slot label {
+.range-label {
     position: absolute;
     bottom: 2px;
     right: 4px;
@@ -93,11 +141,20 @@
     pointer-events: none;
 }
 
-.item-slot p {
+.percentage-label {
     position: absolute;
     bottom: 2px;
     left: 4px;
     font-size: 6px;
+    color: lightgray;
+    pointer-events: none;
+}
+
+.cost-label {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 8px;
     color: lightgray;
     pointer-events: none;
 }

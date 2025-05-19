@@ -12,7 +12,6 @@ let isDragging = false;
 let isDrawing = false;
 let notepadStartX = 0;
 let notepadStartY = 0;
-
 const BASE_STATS = {
     health: 40,
     armor: 15,
@@ -23,13 +22,11 @@ const BASE_STATS = {
     level: 0,
     xp: 0,
 };
-
 let currentStats = {
     health: 40,
     magic: 30,
     xp: 0,
 };
-
 const itemsDatabase = [
     {
         icon: "fa-gavel",
@@ -123,7 +120,7 @@ const itemsDatabase = [
         description: "Deals 1d4 damage to enemies but also harms the wielder",
         type: "magic"
     }
-].map(item => ({ ...item, percentage: [0, 0] }));
+].map(item => ({ ...item, percentage: [0, 0], cost: 0 }));
 
 // close/open form
 function showForm(formId) {
@@ -175,6 +172,7 @@ function generateItem(amount, except = null) {
         const randomPercentage_bottom = Math.random() * (50 - 1) + 1;
         const randomPercentage_top = Math.random() * (100 - randomPercentage_bottom) + randomPercentage_bottom;
         const percentage = [randomPercentage_bottom.toFixed(0), randomPercentage_top.toFixed(0)];
+        const cost = Math.random() * (999.99 - 0.01) + 0.01;
         // Create item slot
         const itemSlot = document.createElement("div");
         itemSlot.className = "item-slot";
@@ -182,6 +180,7 @@ function generateItem(amount, except = null) {
         itemSlot.dataset.itemName = randomItem.name;
         itemSlot.dataset.itemType = randomItem.type;
         itemSlot.dataset.percentage = percentage;
+        itemSlot.dataset.cost = cost.toFixed(2);
         itemSlot.title = randomItem.description;
         // Create icon
         const icon = document.createElement("i");
@@ -191,13 +190,19 @@ function generateItem(amount, except = null) {
         // Add dice label if applicable
         if (randomItem.dice) {
             itemSlot.dataset.itemDice = randomItem.dice;
-            const label = document.createElement("label");
-            const percentageLabel = document.createElement("p");
-            label.innerText = randomItem.dice;
+            const rangeLabel = document.createElement("label");
+            rangeLabel.className = "range-label";
+            rangeLabel.innerText = randomItem.dice;
+            const percentageLabel = document.createElement("label");
+            percentageLabel.className = "percentage-label";
             percentageLabel.innerText = `${percentage[0]} - ${percentage[1]}`;
+            itemSlot.appendChild(rangeLabel);
             itemSlot.appendChild(percentageLabel);
-            itemSlot.appendChild(label);
         }
+        const costLabel = document.createElement("label");
+        costLabel.className = "cost-label";
+        costLabel.innerText = `$${cost.toFixed(2)}`;
+        itemSlot.appendChild(costLabel);
         // Store item description
         itemSlot.dataset.itemDesc = randomItem.description;
         // Correct mouse handling
@@ -246,7 +251,6 @@ function generateItem(amount, except = null) {
                     break;
             }
         });
-
         // Prevent right-click menu
         itemSlot.addEventListener("contextmenu", function (e) {
             e.preventDefault();
@@ -354,7 +358,6 @@ function equipItem(itemElement) {
                 break;
         }
     });
-
     // Remove placeholder icon from slot
     firstEmptySlot.innerHTML = '';
     // Add item to equip slot
@@ -393,7 +396,6 @@ function unequipItem(equippedItem) {
         // Find corresponding equipped item
         const itemId = equippedItem.dataset.itemId;
         const equippedVersion = document.querySelector(`.equip-slot .item-slot[data-original-id="${itemId}"]`);
-
         if (equippedVersion) {
             // Trigger unequip on the equipped version
             toggleEquip(equippedVersion);
@@ -497,13 +499,10 @@ function keepInBounds() {
     const rect = notepad.getBoundingClientRect();
     const maxLeft = window.innerWidth - rect.width;
     const maxTop = window.innerHeight - rect.height;
-
     let left = parseInt(notepad.style.left);
     let top = parseInt(notepad.style.top);
-
     left = Math.min(left, maxLeft);
     top = Math.min(top, maxTop);
-
     notepad.style.left = left + 'px';
     notepad.style.top = top + 'px';
 }
@@ -518,26 +517,20 @@ document.addEventListener('DOMContentLoaded', function () {
         isDragging = true;
         dragStartX = e.clientX;
         dragStartY = e.clientY;
-
         const rect = notepad.getBoundingClientRect();
         notepadStartX = rect.left / 200;
         notepadStartY = rect.top / 200;
-
         notepad.style.left = notepadStartX + 'px';
         notepad.style.top = notepadStartY + 'px';
-
         e.preventDefault();
     });
 
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-
         const deltaX = e.clientX - dragStartX;
         const deltaY = e.clientY - dragStartY;
-
         notepad.style.left = (notepadStartX + deltaX) + 'px';
         notepad.style.top = (notepadStartY + deltaY) + 'px';
-
         keepInBounds();
     });
 
@@ -555,11 +548,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     canvas.addEventListener('mousemove', (e) => {
         if (!isDrawing) return;
-
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
@@ -567,7 +558,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.lineWidth = tool === 'pen' ? 2 : 20;
         ctx.lineCap = 'round';
         ctx.stroke();
-
         lastX = x;
         lastY = y;
     });
@@ -593,12 +583,10 @@ document.addEventListener('DOMContentLoaded', function () {
     canvas.addEventListener('touchmove', (e) => {
         if (!isDrawing) return;
         e.preventDefault();
-
         const rect = canvas.getBoundingClientRect();
         const touch = e.touches[0];
         const x = touch.clientX - rect.left;
         const y = touch.clientY - rect.top;
-
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
         ctx.lineTo(x, y);
@@ -606,7 +594,6 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.lineWidth = tool === 'pen' ? 2 : 20;
         ctx.lineCap = 'round';
         ctx.stroke();
-
         lastX = x;
         lastY = y;
     });
@@ -622,7 +609,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const touch = e.touches[0];
         dragStartX = touch.clientX;
         dragStartY = touch.clientY;
-
         const rect = notepad.getBoundingClientRect();
         notepadStartX = rect.left;
         notepadStartY = rect.top;
@@ -631,16 +617,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-
         const touch = e.touches[0];
         const deltaX = touch.clientX - dragStartX;
         const deltaY = touch.clientY - dragStartY;
-
         notepad.style.left = (notepadStartX + deltaX) + 'px';
         notepad.style.top = (notepadStartY + deltaY) + 'px';
-
         keepInBounds();
-
         if (isDrawing) e.preventDefault();
     }, { passive: false });
 

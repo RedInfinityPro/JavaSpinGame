@@ -39,7 +39,7 @@
     </header>
 
     <main>
-        <!-- windows -->
+        <!-- windows player -->
         <div class="popup-form" id="player-inventory">
             <div class="form-container">
                 <span class="close-btn" id="close-btn" onclick="closeForm('player-inventory')">&times;</span>
@@ -62,7 +62,6 @@
                 <div class="equip-inventory" id="equippedSlot" oncontextmenu="return false;">
 
                 </div>
-                <br></br>
                 <h3>Inventory</h3>
                 <div class="scroll-container">
                     <div class="inventory-grid" id="inventoryGrid" oncontextmenu="return false;">
@@ -71,7 +70,26 @@
                 </div>
             </div>
         </div>
+        <!-- windows settings -->
+        <div class="popup-form" id="settings" style="width: 200%;">
+            <div class="form-container">
+                <span class="close-btn" id="close-btn" onclick="closeForm('settings')">&times;</span>
+                <h2><i class="fa fa-gear"></i> Settings</h2>
 
+                <div class="settings-content">
+                    <div class="settings-select">
+                        <button class="settings-button">General</button>
+                        <button class="settings-button">Advanced</button>
+                        <button class="settings-button">Exit</button>
+                    </div>
+
+                    <div class="settings-display">
+                        <!-- Display content goes here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- windows note pad -->
         <div class="popup-form" id="note-pad" style="width: 309px; height: 385px;">
             <div class="form-container">
                 <h2 style="cursor: move;"><i class="fa fa-file"></i> Note Pad</h2>
@@ -84,7 +102,6 @@
                 </div>
             </div>
         </div>
-
         <!-- side panel -->
         <div class="side-panel">
             <div class="content" id="content">

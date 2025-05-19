@@ -4,7 +4,6 @@
     --font-family: 'Poppins', Arial, sans-serif;
     --font-size: 16px;
     --title-size: 24px;
-
     /* colors */
     --background-color: #121212;
     --text-color: white;
@@ -20,6 +19,7 @@
     padding: 0;
     box-sizing: border-box;
     outline: none;
+    font-family: var(--font-family);
 }
 
 html,
@@ -215,6 +215,7 @@ header {
 }
 
 .searchbar input {
+    position: relative;
     margin-top: 5%;
     padding: 5px;
     border-radius: 5px;
